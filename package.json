@@ -1,0 +1,19 @@
+{
+  "name": "vitrine",
+  "description": "",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "vitrine.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "Kevin Hamer <kevin@imarc.com>",
+  "license": "Apache-2.0",
+  "private": true,
+  "peerDependencies": {
+    "vite": "^4.4.5"
+  },
+  "dependencies": {
+    "twig": "^1.16.0"
+  }
+}

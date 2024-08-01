@@ -1,0 +1,68 @@
+{% import _self as self %}
+
+{% macro recursive(tree) %}
+  <ul>
+    {% for key in tree|keys|sort %}
+      <li>
+        {% if tree[key].name is defined %}
+          <a href="{{ tree[key].url }}">{{ tree[key].name }}</a>
+        {% else %}
+          {{ key }}
+          {{ self.recursive(tree[key]) }}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+
+  {% set markup %}{% include "../../../" ~ component %}{% endset %}
+
+  <main>
+    {% if params.html is defined and component is defined %}
+
+      {{ markup }}
+
+    {% elseif component is defined %}
+      <div class="preview">
+        <iframe src="?html"></iframe>
+      </div>
+
+      <pre>{{ markup|escape }}</pre>
+    {% else %}
+      <p>This is a sample HTML page.</p>
+    {% endif %}
+  </main>
+
+  {% if not params.html is defined %}
+    <aside>
+      <nav>
+        {{ self.recursive(tree) }}
+      </nav>
+    </aside>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      aside,
+      main {
+      }
+      .preview {
+        resize: horizontal;
+        overflow: auto;
+
+        iframe {
+          width: 100%;
+        }
+      }
+    </style>
+  {% endif %}
+</body>
+</html>
