@@ -19,50 +19,72 @@
 <head>
   <meta charset="UTF-8">
   <title></title>
+  {% if not params.html is defined %}
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      .root {
+        display: grid;
+        grid-template: 1fr 1fr / 20rem 1fr;
+        height: 100vh;
+        overflow: hidden;
+      }
+      main,aside {
+        overflow: auto;
+      }
+      aside {
+      grid-area: 1 / 1 / 3 / 2;
+        box-shadow: 0 0 .25rem #0004, 0 0 .5rem #0002, 0 0 1rem #0001;
+      }
+      .preview {
+        resize: horizontal;
+        overflow: hidden;
+
+        iframe {
+          height: 100%;
+          width: 100%;
+        }
+      }
+      pre {
+        padding: .5rem 1rem;
+      }
+    </style>
+  {% endif %}
 </head>
 <body>
 
   {% set markup %}{% include "../../../" ~ component %}{% endset %}
 
-  <main>
-    {% if params.html is defined and component is defined %}
-
-      {{ markup }}
-
-    {% elseif component is defined %}
-      <div class="preview">
-        <iframe src="?html"></iframe>
-      </div>
-
-      <pre>{{ markup|escape }}</pre>
-    {% else %}
-      <p>This is a sample HTML page.</p>
+  <div class="root">
+    {% if not params.html is defined %}
+      <aside>
+        <nav>
+          {{ self.recursive(tree) }}
+        </nav>
+      </aside>
     {% endif %}
-  </main>
 
-  {% if not params.html is defined %}
-    <aside>
-      <nav>
-        {{ self.recursive(tree) }}
-      </nav>
-    </aside>
+      {% if params.html is defined and component is defined %}
 
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      aside,
-      main {
-      }
-      .preview {
-        resize: horizontal;
-        overflow: auto;
+        {{ markup }}
 
-        iframe {
-          width: 100%;
-        }
-      }
-    </style>
-  {% endif %}
+      {% elseif component is defined %}
+        <div class="preview">
+          <iframe src="?html"></iframe>
+        </div>
+
+        <main>
+          <pre>{{ markup|escape }}</pre>
+        </main>
+      {% else %}
+        <main>
+          <p>This is a sample HTML page.</p>
+        </main>
+      {% endif %}
+  </div>
 </body>
 </html>

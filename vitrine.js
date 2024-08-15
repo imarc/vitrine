@@ -49,7 +49,10 @@ export default function vitrinePlugin(prefix = '/vitrine', base = 'resources') {
       })
   }
 
-  const showComponent = (component, data = {}) => renderTemplate('main.twig', { component, ...data })
+  const showComponent = async (component, data = {}) => {
+    const tree = await componentTree('.')
+    return renderTemplate('main.twig', { component, tree, ...data })
+  }
 
   const handle = request => {
     const path = toPath(request.url)
