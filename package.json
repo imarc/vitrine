@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "main": "vitrine.js",
-  "scripts": {
-  },
+  "scripts": {},
   "keywords": [],
   "author": "Kevin Hamer <kevin@imarc.com>",
   "license": "Apache-2.0",
@@ -14,6 +13,8 @@
     "vite": "^4.4.5"
   },
   "dependencies": {
-    "twig": "^1.16.0"
+    "@vue/server-renderer": "^3.4.38",
+    "twig": "^1.16.0",
+    "vue": "^3.4.38"
   }
 }
