@@ -9,8 +9,10 @@ export default {
       <li v-for="(v, k) in data">
         <a v-if="'url' in v" :href="v.url">{{ v.name }}</a>
         <template v-else>
-          {{ k }}
-          <RecursiveList v-if="typeof v === 'object' && v !== null" :data="v"></RecursiveList>
+          <details open>
+            <summary>{{ k }}</summary>
+            <RecursiveList v-if="typeof v === 'object' && v !== null" :data="v"></RecursiveList>
+          </details>
         </template>
       </li>
     </component>

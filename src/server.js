@@ -69,7 +69,6 @@ export default function Server(
       const dir = dirname(request.url)
       const path = toPath(dir)
       const pathbase = basename(request.url).replace(/\?.*/, '')
-
       return readdir(path, { withFileTypes: true })
         .then(async files => {
           files = files.filter(({ name }) => componentPattern.test(name))
@@ -87,13 +86,17 @@ export default function Server(
             (new URLSearchParams(request.url.replace(/#.*$/, '').replace(/^.*\?(.*)/, '$1'))).entries()
           )
 
+          const component = join(rootPath, file.parentPath, file.name)
+          const code = await readFile(component, { encoding: 'utf8' })
+
           if ('html' in params) {
-            const component = join(rootPath, file.parentPath, file.name)
-            const contents = await readFile(component, { encoding: 'utf8' })
-            return resolve(contents + buildIncludeTags(include))
+            return resolve(code + buildIncludeTags(include))
           } else {
-            const component = join(dir, pathbase) + '?html'
-            return resolve(previewTemplate({ components, component }))
+            return resolve(previewTemplate({
+              components,
+              code,
+              component: join(dir, pathbase) + '?html',
+            }))
           }
 
         }).catch(reject)
