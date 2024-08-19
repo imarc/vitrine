@@ -14,6 +14,9 @@
       font-size: 16px;
       margin: 0;
     }
+    a {
+      text-decoration: none;
+    }
     #root {
       display: grid;
       grid-template: auto 1fr / 200px auto;
@@ -41,18 +44,18 @@
       }
     }
     .documentation {
-      padding: 1em;
       grid-area: 1 / 2 / 3 / 3;
+      padding: 1em;
     }
     .preview {
       background: #fff;
       border: 3px ridge;
       height: 50vh;
       justify-self: center;
+      max-width: calc(100vw  - 200px);
       overflow: auto;
       resize: both;
       width: min(100% - 32px, 1364px);
-      max-width: calc(100vw  - 200px);
 
       iframe {
         border: 0;
@@ -61,13 +64,43 @@
       }
     }
     .code {
+      align-items: start;
       color: white;
+      display: grid;
       font-size: inherit;
       margin: 0;
       overflow: auto;
 
-      code {
-        min-height: 100%;
+      nav, pre {
+        grid-area: 1 / 1 / 2 / 2;
+      }
+
+      nav {
+        a {
+          border-bottom: 1px solid #fff8;
+          color: #fff8;
+          display: inline flex;
+          font-family: monospace;
+          padding: .25em .5em;
+        }
+
+        a.active {
+          box-shadow: 0 -2px 0 inset;
+          color: #fff;
+        }
+
+        a:hover {
+          background: #0002;
+          color: #fff;
+        }
+      }
+
+      pre {
+        margin: 0;
+        code {
+          min-height: 100%;
+          padding-top: 2em;
+        }
       }
     }
     </style>
@@ -92,7 +125,16 @@
         <main class="preview">
           <iframe :src="component"></iframe>
         </main>
-        <pre class="code"><code>{{ code }}</code></pre>
+        <div class="code">
+          <pre><code>{{ code }}</code></pre>
+          <nav>
+            <a
+              v-for="file in related"
+              :class="{ active: file === filename }"
+              :href="`?${file}`"
+            >{{ file }}</a>
+          </nav>
+        </div>
       </template>
     </div>
     <script>hljs.initHighlightingOnLoad()</script>

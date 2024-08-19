@@ -74,6 +74,7 @@ export default function Server(
       const pathbase = basename(request.url).replace(/\?.*/, '')
       return readdir(path, { withFileTypes: true })
         .then(async files => {
+          const related = files.map(({ name }) => name)
           files = files.filter(({ name }) => componentPattern.test(name))
 
           let file = files.find(({ name }) => name.startsWith(`${pathbase}.`))
@@ -90,16 +91,35 @@ export default function Server(
           )
 
           const component = join(rootPath, file.parentPath, file.name)
-          const code = await readFile(component, { encoding: 'utf8' })
 
           if ('html' in params) {
+            const code = await readFile(component, { encoding: 'utf8' })
             return resolve(code + buildIncludeTags(include))
+
           } else {
-            return resolve(previewTemplate({
-              components,
-              code,
-              component: join(dir, pathbase) + '?html',
-            }))
+            try {
+              let filename = related.find(name => name in params)
+              if (!filename) {
+                filename = file.name
+              }
+
+              const code = await readFile(
+                join(rootPath, file.parentPath, filename),
+                { encoding: 'utf8' }
+              )
+
+              return resolve(previewTemplate({
+                related,
+                filename: filename,
+                components,
+                code,
+                component: join(dir, pathbase) + '?html',
+              }))
+
+            } catch (error) {
+              console.error(error)
+              return reject(error)
+            }
           }
 
         }).catch(reject)
