@@ -35,6 +35,9 @@ const previewTemplate = async params => {
       RecursiveList,
     },
     data: () => params,
+    onMounted() {
+      hljs.highlightAll()
+    },
     template
   })
   return await renderToString(app)

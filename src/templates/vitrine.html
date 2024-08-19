@@ -3,34 +3,56 @@
   <head>
     <meta charset="UTF-8">
     <title>Vitrine</title>
+    <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
     <style>
     * {
       box-sizing: border-box;
     }
     body {
-      font-family: Arial, sans-serif;
+      font-family: system-ui, sans-serif;
+      font-size: 16px;
       margin: 0;
     }
     #root {
-      height: 100%;
       display: grid;
-      grid-template: auto 1fr / max(200px, (100vw - 1200px) / 2) auto;
+      grid-template: auto 1fr / 200px auto;
+      height: 100%;
+    }
+    #root:has(.preview) {
+      background: conic-gradient(#0002 90deg, #0000 90deg, #0000 180deg, #0002 180deg, #0002 270deg, #0000 270deg) top / 2em 2em;
     }
     aside {
+      background: #fff;
+      box-shadow: 0 0 1rem #0002;
       grid-area: 1 / 1 / 3 / 2;
+      padding: 1em;
+
       ul {
         list-style: none;
-        padding-left: 1em;
+        padding-left: 0;
+        ul {
+          padding-left: 1em;
+        }
       }
+
       summary {
         cursor: pointer;
       }
     }
-    main {
+    .documentation {
+      padding: 1em;
+      grid-area: 1 / 2 / 3 / 3;
+    }
+    .preview {
+      background: #fff;
+      border: 3px ridge;
       height: 50vh;
-      resize: horizontal;
+      justify-self: center;
       overflow: auto;
-      border: 1px solid #0004;
+      resize: both;
+      width: min(100% - 32px, 1364px);
+      max-width: calc(100vw  - 200px);
 
       iframe {
         border: 0;
@@ -39,23 +61,40 @@
       }
     }
     .code {
-      background: black;
       color: white;
-      padding: 1em 2em;
+      font-size: inherit;
       margin: 0;
       overflow: auto;
+
+      code {
+        min-height: 100%;
+      }
     }
     </style>
   </head>
   <body>
     <div id="root">
       <aside>
+        <h1><a href="/vitrine">Components</a></h1>
         <recursive-list :data="components" />
       </aside>
-      <main>
-        <iframe :src="component"></iframe>
+      <main v-if="component === undefined" class="documentation">
+        <h1>Overview</h1>
+        <p>
+          This is your site's pattern library. You can browse through your components and examples on the left.
+        </p>
+        <h2>Getting Started</h2>
+        <p>
+          To add a new component, create a <code>.html</code> file anywhere within your base resources folder (default: <code>resources/styles/</code>.)
+        </p>
       </main>
-      <pre class="code">{{ code }}</pre>
+      <template v-else>
+        <main class="preview">
+          <iframe :src="component"></iframe>
+        </main>
+        <pre class="code"><code>{{ code }}</code></pre>
+      </template>
     </div>
+    <script>hljs.initHighlightingOnLoad()</script>
   </body>
 </html>
