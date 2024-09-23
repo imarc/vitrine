@@ -111,7 +111,7 @@
         <h1><a href="/vitrine">Components</a></h1>
         <recursive-list :data="components" />
       </aside>
-      <main v-if="component === undefined" class="documentation">
+      <main v-if="typeof component === 'undefined'" class="documentation">
         <h1>Overview</h1>
         <p>
           This is your site's pattern library. You can browse through your components and examples on the left.
@@ -120,6 +120,7 @@
         <p>
           To add a new component, create a <code>.html</code> file anywhere within your base resources folder (default: <code>resources/styles/</code>.)
         </p>
+        <code>{{ components }}</code>
       </main>
       <template v-else>
         <main class="preview">

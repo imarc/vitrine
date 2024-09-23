@@ -5,25 +5,48 @@ import { createSSRApp, h } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import RecursiveList from './templates/RecursiveList.js'
 
+const setNested = (obj, val, ...keys) => {
+  const key = keys.shift()
+  if (key) {
+    if (!('children' in obj)) {
+      obj.children = []
+    }
+    let child = obj.children.find(e => e.name === key)
+
+    if (!child) {
+      child = { name: key }
+      obj.children.push(child)
+    }
+    setNested(child, val, ...keys)
+  } else {
+    Object.assign(obj, val)
+  }
+}
+
 const buildComponentTree = async (dir, filePattern, urlPrefix) => {
   return await readdir(dir, { withFileTypes: true, recursive: true })
     .then(files => {
-      const tree = {}
+      const tree = { children: [] }
 
       files.filter(file => filePattern.test(file.name))
         .forEach(file => {
-          const path = file.parentPath.replace(dir + sep, '').split(sep).concat(file.name.replace(filePattern, ''))
-          path.reduce((tree, seg, i) =>
-            tree[seg]
-              ?? (tree[seg] = i < path.length - 1
-                ? {}
-                : {
-                  name: file.name.replace(filePattern, ''),
-                  url: join(file.parentPath, file.name.replace(filePattern, '')).replace(dir, urlPrefix),
-                }), tree)
+          const path = file.parentPath.replace(dir + sep, '').split(sep)
+          const filenameSegment = file.name.replace(filePattern, '')
+          if (path.at(-1) != filenameSegment) {
+            path.push(filenameSegment)
+          }
+
+          console.log(path)
+          
+          const node = {
+            name: file.name.replace(filePattern, ''),
+            url: join(file.parentPath, file.name.replace(filePattern, '')).replace(dir, urlPrefix),
+          }
+
+          setNested(tree, node, ...path)
         })
 
-      return tree
+      return tree.children
     })
 }
 
@@ -83,7 +106,7 @@ export default function Server(
           }
 
           if (!file) {
-            return resolve(previewTemplate({ components }))
+            return resolve(previewTemplate({ components, component: undefined }))
           }
 
           const params = Object.fromEntries(
