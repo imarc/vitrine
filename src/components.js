@@ -4,11 +4,9 @@ import { basename, dirname, join, sep, resolve } from 'path'
 const COMPONENT_PATTERN = /\.(twig|html)$/i
 
 export const findComponents = async dir => {
-  console.log({ dir })
   try {
     return await readdir(dir, { withFileTypes: true, recursive: true })
       .then(files => {
-        console.log({ files })
         const tree = {}
 
         files.filter(file => COMPONENT_PATTERN.test(file.name))

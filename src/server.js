@@ -36,8 +36,6 @@ const buildComponentTree = async (dir, filePattern, urlPrefix) => {
             path.push(filenameSegment)
           }
 
-          console.log(path)
-          
           const node = {
             name: file.name.replace(filePattern, ''),
             url: join(file.parentPath, file.name.replace(filePattern, '')).replace(dir, urlPrefix),
