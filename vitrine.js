@@ -1,5 +1,7 @@
-import { join } from 'path'
+import { join } from 'node:path'
+import process from 'node:process'
 import Server from './src/server.js'
+import semver from 'semver'
 
 export default function vitrinePlugin({
   include = [],
@@ -31,7 +33,12 @@ export default function vitrinePlugin({
     },
 
     configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
+      if (semver.lt(process.versions.node, '20.0.0')) {
+        console.error("Vitrine requires node version 20 or newer.")
+        process.exit(1)
+      }
+
+      server.middlewares.use((req, res, next) => {
         if (req.url.startsWith(prefix)) {
           vitrine.handle(req)
             .then(body => {
