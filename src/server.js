@@ -1,5 +1,5 @@
-import { basename, dirname, join, sep } from 'path'
-import { fileURLToPath } from 'url'
+import { basename, dirname, join, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { readdir, readFile } from 'node:fs/promises'
 import { createSSRApp, h } from 'vue'
 import { renderToString } from '@vue/server-renderer'
@@ -44,7 +44,7 @@ const buildComponentTree = async (dir, filePattern, urlPrefix) => {
           setNested(tree, node, ...path)
         })
 
-      return tree.children
+      return tree.children.toSorted((a, b) => a.name.localeCompare(b.name))
     })
 }
 
