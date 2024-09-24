@@ -109,7 +109,10 @@
     <div id="root">
       <aside>
         <h1><a href="/vitrine">Components</a></h1>
-        <recursive-list :data="components" />
+        <div v-for="group in components">
+          <h2>{{ group.name }}</h2>
+          <recursive-list :data="group.children.toSorted(e => e.name)" />
+        </div>
       </aside>
       <main v-if="typeof component === 'undefined'" class="documentation">
         <h1>Overview</h1>
