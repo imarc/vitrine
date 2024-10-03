@@ -9,7 +9,7 @@
   "author": "Kevin Hamer <kevin@imarc.com>",
   "license": "Apache-2.0",
   "peerDependencies": {
-    "vite": "^4.4.5"
+    "vite": "^4.4.5 || ^5.0.0"
   },
   "dependencies": {
     "@vue/server-renderer": "^3.4.38",
