@@ -85,14 +85,13 @@ export default function Server(
   this.setInclude = inc => include = inc
 
   this.handle = async function (request) {
-
     const componentsDir = join(rootPath, base)
     const components = await buildComponentTree(componentsDir, componentPattern, prefix)
+    const dir = dirname(request.url)
+    const path = toPath(dir)
+    const pathbase = basename(request.url).replace(/\?.*/, '')
 
     return new Promise((resolve, reject) => {
-      const dir = dirname(request.url)
-      const path = toPath(dir)
-      const pathbase = basename(request.url).replace(/\?.*/, '')
       return readdir(path, { withFileTypes: true })
         .then(async files => {
           const related = files.map(({ name }) => name)
@@ -104,7 +103,11 @@ export default function Server(
           }
 
           if (!file) {
-            return resolve(previewTemplate({ components, component: undefined }))
+            return resolve(previewTemplate({
+              server: { prefix, base, componentPattern },
+              components,
+              component: undefined
+            }))
           }
 
           const params = Object.fromEntries(
@@ -130,6 +133,7 @@ export default function Server(
               )
 
               return resolve(previewTemplate({
+                server: { prefix, base, componentPattern },
                 related,
                 filename: filename,
                 components,

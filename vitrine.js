@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import Server from './src/server.js'
 import semver from 'semver'
+import { existsSync } from 'node:fs'
 
 export default function vitrinePlugin({
   include = [],
@@ -9,6 +10,11 @@ export default function vitrinePlugin({
   base = 'resources/styles',
   componentPattern = /\.html?$/i,
 } = {}) {
+  if (!existsSync(base)) {
+    console.error(`The configured base directory of ${base} does not exist.`)
+    process.exit(1)
+  }
+
   const vitrine = new Server(prefix, base, componentPattern)
   vitrine.setInclude(include)
 
