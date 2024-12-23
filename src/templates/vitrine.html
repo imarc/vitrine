@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Vitrine</title>
+    <title>Components</title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
     <style>
@@ -108,7 +108,7 @@
   <body>
     <div id="root">
       <aside>
-        <h1><a href="/vitrine">Components</a></h1>
+        <h1><a href="{{ server.prefix }}">Components</a></h1>
         <div v-for="group in components">
           <h2>{{ group.name }}</h2>
           <recursive-list :data="group.children.toSorted(e => e.name)" />
@@ -121,8 +121,9 @@
         </p>
         <h2>Getting Started</h2>
         <p>
-          To add a new component, create a <code>.html</code> file anywhere within your base resources folder (default: <code>resources/styles/</code>.)
+        To add a new component, create a <code>.html</code> file anywhere within your base resources folder (<code>{{ server.base }}</code>.)
         </p>
+        {{ server }}
       </main>
       <template v-else>
         <main class="preview">
