@@ -19,10 +19,11 @@ export default class Server {
     this.#componentPattern = componentPattern
 
     this.#basePaths = basePaths.map(path => {
-      if (!existsSync(path)) {
-        console.warn(`Vitrine could not find basePath directory ${path}.`)
+      path = this.parseBasePath(path)
+      if (!existsSync(path.dir)) {
+        console.warn(`Vitrine could not find basePath directory ${path.dir}.`)
       }
-      return this.parseBasePath(path)
+      return path
     })
   }
 
@@ -41,8 +42,11 @@ export default class Server {
 
   parseBasePath(dir) {
     if (typeof dir === 'string') {
-      const name = dir.replace(/^\/?node_modules\/([^/]*).*/, '$1').replace(/.*\//, '')
-      return { dir, name }
+      if (/node_modules/.test(dir)) {
+        return { dir, name: dir.replace(/^\/?node_modules\/([^/]*).*/, '$1') }
+      }
+
+      return { dir }
     }
 
     return dir
@@ -80,16 +84,20 @@ export default class Server {
   async findComponents(basePaths) {
     const tree = new TreeNode
 
-    for (const { dir, name: basePathName } of basePaths) {
-      const files = await readdir(dir, { withFileTypes: true, recursive: true })
+    for (const basePath of basePaths) {
+      const files = await readdir(basePath.dir, { withFileTypes: true, recursive: true })
 
       files
         .filter(file => this.#componentPattern.test(file.name))
         .forEach(file => {
-          const path = file.parentPath.replace(dir + sep, '')
+          const path = file.parentPath.replace(basePath.dir + sep, '')
           const name = file.name.replace(this.#componentPattern, '')
+          const segments = path.split(sep)
 
-          const segments = [basePathName].concat(path.split(sep))
+          if (basePath.name) {
+            segments.unshift(basePath.name)
+          }
+
           if (segments.at(-1) !== name) {
             segments.push(name)
           }
