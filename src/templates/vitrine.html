@@ -108,39 +108,34 @@
   <body>
     <div id="root">
       <aside>
-        <h1><a href="{{ server.prefix }}">Components</a></h1>
-        <div v-for="group in components">
-          <h2>{{ group.name }}</h2>
-          <recursive-list :data="group.children.toSorted(e => e.name)" />
-        </div>
+        <h1><a :href="server.prefix">Components</a></h1>
+        <RecursiveList :data="components.toArray()" />
       </aside>
       <main v-if="typeof component === 'undefined'" class="documentation">
+        <h1>404'd!</h1>
+      </main>
+      <main v-else-if="component.url === undefined" class="documentation">
         <h1>Overview</h1>
         <p>
-          This is your site's pattern library. You can browse through your components and examples on the left.
+          Consectetur sit ducimus fuga maxime nihil nisi illo harum? Nihil assumenda voluptatibus eius tenetur rem Incidunt necessitatibus vel odio consequatur voluptates, est Asperiores eius accusamus soluta rem incidunt, in? Rem.
         </p>
-        <h2>Getting Started</h2>
-        <p>
-        To add a new component, create a <code>.html</code> file anywhere within your base resources folder (<code>{{ server.base }}</code>.)
-        </p>
-        {{ server }}
       </main>
       <template v-else>
         <main class="preview">
-          <iframe :src="component"></iframe>
+          <iframe :src="component.url + '?html'"></iframe>
         </main>
         <div class="code">
           <pre><code>{{ code }}</code></pre>
           <nav>
             <a
               v-for="file in related"
-              :class="{ active: file === filename }"
-              :href="`?${file}`"
-            >{{ file }}</a>
+              :href="file.url"
+              :class="{ active: viewingFile === file.name }"
+              >{{ file.name }}</a>
           </nav>
         </div>
       </template>
     </div>
-    <script>hljs.initHighlightingOnLoad()</script>
+    <script>hljs.highlightAll()</script>
   </body>
 </html>

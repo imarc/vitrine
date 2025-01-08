@@ -1,153 +1,172 @@
-import { basename, dirname, join, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readdir, readFile } from 'node:fs/promises'
-import { createSSRApp, h } from 'vue'
+import { join, sep } from 'node:path'
+import { existsSync } from 'node:fs'
+import { createSSRApp } from 'vue'
 import { renderToString } from '@vue/server-renderer'
+import { readdir, readFile } from 'node:fs/promises'
+import TreeNode from './TreeNode.js'
 import RecursiveList from './templates/RecursiveList.js'
 
-const setNested = (obj, val, ...keys) => {
-  const key = keys.shift()
-  if (key) {
-    if (!('children' in obj)) {
-      obj.children = []
-    }
-    let child = obj.children.find(e => e.name === key)
+export default class Server {
+  #basePaths;
+  #componentPattern;
+  #includes = [];
+  #prefix;
+  #rootPath;
 
-    if (!child) {
-      child = { name: key }
-      obj.children.push(child)
-    }
-    setNested(child, val, ...keys)
-  } else {
-    Object.assign(obj, val)
+  constructor(prefix, basePaths, componentPattern) {
+    this.#prefix = prefix
+    this.#componentPattern = componentPattern
+
+    this.#basePaths = basePaths.map(path => {
+      if (!existsSync(path)) {
+        console.warn(`Vitrine could not find basePath directory ${path}.`)
+      }
+      return this.parseBasePath(path)
+    })
   }
-}
 
-const buildComponentTree = async (dir, filePattern, urlPrefix) => {
-  return await readdir(dir, { withFileTypes: true, recursive: true })
-    .then(files => {
-      const tree = { children: [] }
+  include(...files) {
+    this.#includes = [].concat(...files)
+  }
 
-      files.filter(file => filePattern.test(file.name))
+  setRootPath(path) {
+    this.#rootPath = path
+  }
+
+  parseURLParams(request) {
+    const queryStr = request.url.replace(/#.*$/, '').replace(/^.*\?(.*)/, '$1')
+    return Object.fromEntries((new URLSearchParams(queryStr)).entries())
+  }
+
+  parseBasePath(dir) {
+    if (typeof dir === 'string') {
+      const name = dir.replace(/^\/?node_modules\/([^/]*).*/, '$1').replace(/.*\//, '')
+      return { dir, name }
+    }
+
+    return dir
+  }
+
+  getIncludeTags() {
+    return this.#includes
+      .map(include => /\.css$/i.test(include)
+        ? `<link rel="stylesheet" href="${include}">`
+        : `<script type="module" src="${include}"></script>`
+      )
+      .join('\n')
+  }
+
+  async view(params = {}) {
+    try {
+      let filename = import.meta.resolve('./templates/vitrine.html')
+      filename = fileURLToPath(filename)
+      const template = await readFile(filename, { encoding: 'utf8' })
+
+      const app = createSSRApp({
+        components: {
+          RecursiveList,
+        },
+        data: () => params,
+        template
+      })
+      return await renderToString(app)
+    } catch (e) {
+      console.error(e)
+      return '500 Internal Server Error: ' + e.message
+    }
+  }
+
+  async findComponents(basePaths) {
+    const tree = new TreeNode
+
+    for (const { dir, name: basePathName } of basePaths) {
+      const files = await readdir(dir, { withFileTypes: true, recursive: true })
+
+      files
+        .filter(file => this.#componentPattern.test(file.name))
         .forEach(file => {
-          const path = file.parentPath.replace(dir + sep, '').split(sep)
-          const filenameSegment = file.name.replace(filePattern, '')
-          if (path.at(-1) != filenameSegment) {
-            path.push(filenameSegment)
+          const path = file.parentPath.replace(dir + sep, '')
+          const name = file.name.replace(this.#componentPattern, '')
+
+          const segments = [basePathName].concat(path.split(sep))
+          if (segments.at(-1) !== name) {
+            segments.push(name)
           }
 
           const node = {
-            name: file.name.replace(filePattern, ''),
-            url: join(file.parentPath, file.name.replace(filePattern, '')).replace(dir, urlPrefix),
+            name,
+            parentPath: file.parentPath,
+            filename: join(file.parentPath, file.name),
+            url: join(this.#prefix, ...segments)
           }
 
-          setNested(tree, node, ...path)
+          tree.set(segments, node)
         })
+    }
 
-      return tree.children.toSorted((a, b) => a.name.localeCompare(b.name))
+    return tree
+  }
+
+  async findRelatedFiles(component) {
+    const files = await readdir(component.parentPath, { withFileTypes: true })
+
+    return files.filter(file => file.isFile())
+      .map(file => {
+      const url = component.filename === join(file.parentPath, file.name)
+        ? component.url
+        : component.url + `?file=${file.name}`
+      return {
+        name: file.name,
+        parentPath: file.parentPath,
+        filename: join(file.parentPath, file.name),
+        debug: this.#prefix,
+        component,
+        url,
+      }
     })
-}
+  }
 
-const previewTemplate = async params => {
-  const previewFile = fileURLToPath(import.meta.resolve('./templates/vitrine.html'))
-  const template = (await readFile(previewFile, { encoding: 'utf8' }))
-  const app = createSSRApp({
-    components: {
-      RecursiveList,
-    },
-    data: () => params,
-    onMounted() {
-      hljs.highlightAll()
-    },
-    template
-  })
-  return await renderToString(app)
-}
+  async handle(request) {
+    try {
+      const components = await this.findComponents(this.#basePaths)
+      const segments = request.url
+        .replace(this.#prefix, '')
+        .replace(/[#?].*$/, '')
+        .split('/')
+        .filter(c => c)
+      const component = components.get(segments)
+      const related = component?.parentPath ? await this.findRelatedFiles(component) : null
+      const urlParams = this.parseURLParams(request)
 
-const buildIncludeTags = includes => includes
-  .map(include => /\.css$/i.test(include)
-    ? `<link rel="stylesheet" href="${include}">`
-    : `<script type="module" src="${include}"></script>`
-  ).join('\n')
+      const data = {
+        server: {
+          prefix: this.#prefix,
+          basePaths: this.#basePaths
+        },
+        components,
+        component,
+        related,
+      }
 
-export default function Server(
-  prefix,
-  base,
-  componentPattern
-) {
+      if (component && 'file' in urlParams) {
+        data.viewingFile = urlParams.file
+        data.code = await readFile(join(component.parentPath, urlParams.file), { encoding: 'utf8' })
 
-  const toPath = url => url.replace(prefix, base)
+      } else if (component?.filename) {
+        data.viewingFile = component.filename.replace(/^.*\//, '')
+        data.code = await readFile(component.filename, { encoding: 'utf8' })
+      }
 
-  let rootPath = '.'
-  this.setPath = path => rootPath = path
+      if ('html' in urlParams) {
+        return data.code + this.getIncludeTags()
+      }
 
-  let include = []
-  this.setInclude = inc => include = inc
+      return await this.view(data)
 
-  this.handle = async function (request) {
-    const componentsDir = join(rootPath, base)
-    const components = await buildComponentTree(componentsDir, componentPattern, prefix)
-    const dir = dirname(request.url)
-    const path = toPath(dir)
-    const pathbase = basename(request.url).replace(/\?.*/, '')
-
-    return new Promise((resolve, reject) => {
-      return readdir(path, { withFileTypes: true })
-        .then(async files => {
-          const related = files.map(({ name }) => name)
-          files = files.filter(({ name }) => componentPattern.test(name))
-
-          let file = files.find(({ name }) => name.startsWith(`${pathbase}.`))
-          if (!file) {
-            file = files.find(({ name }) => /^index\.[^.]*$/i.test(name))
-          }
-
-          if (!file) {
-            return resolve(previewTemplate({
-              server: { prefix, base, componentPattern },
-              components,
-              component: undefined
-            }))
-          }
-
-          const params = Object.fromEntries(
-            (new URLSearchParams(request.url.replace(/#.*$/, '').replace(/^.*\?(.*)/, '$1'))).entries()
-          )
-
-          const component = join(rootPath, file.parentPath, file.name)
-
-          if ('html' in params) {
-            const code = await readFile(component, { encoding: 'utf8' })
-            return resolve(code + buildIncludeTags(include))
-
-          } else {
-            try {
-              let filename = related.find(name => name in params)
-              if (!filename) {
-                filename = file.name
-              }
-
-              const code = await readFile(
-                join(rootPath, file.parentPath, filename),
-                { encoding: 'utf8' }
-              )
-
-              return resolve(previewTemplate({
-                server: { prefix, base, componentPattern },
-                related,
-                filename: filename,
-                components,
-                code,
-                component: join(dir, pathbase) + '?html',
-              }))
-
-            } catch (error) {
-              console.error(error)
-              return reject(error)
-            }
-          }
-
-        }).catch(reject)
-    })
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   }
 }

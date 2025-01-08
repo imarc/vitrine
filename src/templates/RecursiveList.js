@@ -2,19 +2,14 @@ export default {
   name: 'RecursiveList',
   props: {
     data: { type: Array, required: true },
-    tag: { type: String, default: 'ul' },
-  },
-  computed: {
-    sorted() {
-      return this.data.toSorted((a, b) => a.name > b.name ? 1 : -1)
-    },
   },
   template: `
-    <component :is="tag">
-      <li v-for="child of sorted">
-        <a v-if="'url' in child" :href="child.url">{{ child.name }}</a>
-        <RecursiveList v-if="child.children?.length" :data="child.children" :tag="tag" />
+    <ul>
+      <li v-for="child of data">
+        <a v-if="child.url" :href="child.url">{{ child.name || child.key }}</a>
+        <span v-else>{{ child.name || child.key }}</span>
+        <RecursiveList v-if="child.children" :data="child.toArray()" />
       </li>
-    </component>
+    </ul>
   `
 }
