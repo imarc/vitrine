@@ -4,7 +4,7 @@ import Server from './src/server.js'
 
 export default function vitrinePlugin({
   includes = [],
-  prefix = '/vitrine',
+  prefix = '/components',
   template = '_preview.html',
   basePaths = ['resources/styles'],
   componentPattern = /\.html?$/i,
