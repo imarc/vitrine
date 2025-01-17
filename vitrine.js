@@ -23,9 +23,7 @@ export default function vitrinePlugin({
         process.exit(1)
       }
 
-      console.log(
-        `Vitrine is running at ${vite.config.server.https ? 'https': 'http'}://localhost:${vite.config.server.port}${prefix}`
-      )
+      console.log(`  Vitrine 0.1.0`)
 
       vite.middlewares.use((req, res, next) => {
         if (req.url.startsWith(prefix)) {

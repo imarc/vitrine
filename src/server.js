@@ -73,9 +73,9 @@ export default class Server {
 
   getIncludeTags() {
     return this.#includes
-      .map(include => /\.css$/i.test(include)
-        ? `<link rel="stylesheet" href="${include}">`
-        : `<script type="module" src="${include}"></script>`
+      .map(include => /\.[jt]s$/i.test(include)
+        ? `<script type="module" src="${include}"></script>`
+        : `<link rel="stylesheet" href="${include}">`
       )
       .join('\n')
   }
