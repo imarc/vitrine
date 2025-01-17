@@ -7,16 +7,39 @@ import { readdir, readFile } from 'node:fs/promises'
 import TreeNode from './TreeNode.js'
 import RecursiveList from './templates/RecursiveList.js'
 
+const defaultTemplate = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>\${component.name}</title>
+    <!-- Using Vitrine's builtin template -->
+  </head>
+  <body>
+    <div id="app">
+      \${code}
+    </div>
+    \${includes}
+  </body>
+  </html>
+`
+
 export default class Server {
   #basePaths;
   #componentPattern;
   #includes = [];
   #prefix;
-  #rootPath;
+  #template;
 
-  constructor(prefix, basePaths, componentPattern) {
+  constructor({
+    prefix,
+    basePaths,
+    componentPattern,
+    template,
+  } = {}) {
     this.#prefix = prefix
     this.#componentPattern = componentPattern
+    this.#template = template
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -29,10 +52,6 @@ export default class Server {
 
   include(...files) {
     this.#includes = [].concat(...files)
-  }
-
-  setRootPath(path) {
-    this.#rootPath = path
   }
 
   parseURLParams(request) {
@@ -94,6 +113,10 @@ export default class Server {
           const name = file.name.replace(this.#componentPattern, '')
           const segments = path.split(sep)
 
+          if (join(file.parentPath, file.name) === join(basePath.dir, this.#template)) {
+            return
+          }
+
           if (basePath.name) {
             segments.unshift(basePath.name)
           }
@@ -114,6 +137,26 @@ export default class Server {
     }
 
     return tree
+  }
+
+  interpolate(str, params) {
+    const names = Object.keys(params)
+    const values = Object.values(params)
+
+    return new Function(...names, `return \`${str}\`;`)(...values)
+  }
+
+  async render(template, params) {
+    for (const basePath of this.#basePaths) {
+      if (existsSync(join(basePath.dir, template))) {
+        const tmpl = await readFile(join(basePath.dir, template), { encoding: 'utf8' })
+        return this.interpolate( tmpl, {
+          ...params,
+          template: join(basePath.dir, template),
+        })
+      }
+    }
+    return this.interpolate(defaultTemplate, params)
   }
 
   async findRelatedFiles(component) {
@@ -167,7 +210,11 @@ export default class Server {
       }
 
       if ('html' in urlParams) {
-        return data.code + this.getIncludeTags()
+        return this.render(this.#template, {
+          component,
+          code: data.code,
+          includes: this.getIncludeTags(),
+        })
       }
 
       return await this.view(data)

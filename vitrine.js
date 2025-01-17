@@ -5,11 +5,12 @@ import Server from './src/server.js'
 export default function vitrinePlugin({
   includes = [],
   prefix = '/vitrine',
+  template = '_preview.html',
   basePaths = ['resources/styles'],
   componentPattern = /\.html?$/i,
 } = {}) {
 
-  const server = new Server(prefix, basePaths, componentPattern)
+  const server = new Server({ prefix, basePaths, componentPattern, template })
   server.include(includes)
 
   return {
@@ -21,6 +22,10 @@ export default function vitrinePlugin({
         console.error("Vitrine requires node version 20 or newer.")
         process.exit(1)
       }
+
+      console.log(
+        `Vitrine is running at ${vite.config.server.https ? 'https': 'http'}://localhost:${vite.config.server.port}${prefix}`
+      )
 
       vite.middlewares.use((req, res, next) => {
         if (req.url.startsWith(prefix)) {
