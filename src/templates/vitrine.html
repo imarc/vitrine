@@ -117,16 +117,33 @@
         <h1>404'd!</h1>
       </main>
       <main v-else-if="component.url === undefined" class="documentation">
-        <h1>Overview</h1>
+        <script
+          v-if="components.toArray().find(c => c.url)?.url"
+          v-html="`window.location = '${components.toArray().find(c => c.url).url}'`"
+        ></script>
+        <h1>Welcome!</h1>
+        <h2>This is your component library.</h2>
         <p>
-          Consectetur sit ducimus fuga maxime nihil nisi illo harum? Nihil assumenda voluptatibus eius tenetur rem Incidunt necessitatibus vel odio consequatur voluptates, est Asperiores eius accusamus soluta rem incidunt, in? Rem.
+          You don't have any components yet. If you do have some compoments,
+          <template v-if="server.basePaths.length">
+            make sure that they are in: <code>{{ server.basePaths.map(p => p.dir).join(", ") }}</code>
+          </template>
+          <template v-else>
+            make sure to configure Vitrine's <code>basePaths</code>.
+          </template>
         </p>
+      </main>
+      <main
+        v-else-if="component.filetype === 'md'"
+        class="documentation"
+        v-html="markdown(code)">
       </main>
       <template v-else>
         <main class="preview">
           <iframe :src="component.url + '?html'"></iframe>
         </main>
         <div class="code">
+          {{ component }}
           <pre><code>{{ code }}</code></pre>
           <nav>
             <a

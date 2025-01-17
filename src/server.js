@@ -4,6 +4,8 @@ import { existsSync } from 'node:fs'
 import { createSSRApp } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { readdir, readFile } from 'node:fs/promises'
+import { marked } from 'marked'
+
 import TreeNode from './TreeNode.js'
 import RecursiveList from './templates/RecursiveList.js'
 
@@ -91,6 +93,9 @@ export default class Server {
           RecursiveList,
         },
         data: () => params,
+        methods: {
+          markdown: str => marked.parse(str),
+        },
         template
       })
       return await renderToString(app)
@@ -104,13 +109,17 @@ export default class Server {
     const tree = new TreeNode
 
     for (const basePath of basePaths) {
+      if (!existsSync(basePath.dir)) {
+        console.warn(`Vitrine was not able to access ${basePath.dir}`)
+        continue
+      }
       const files = await readdir(basePath.dir, { withFileTypes: true, recursive: true })
 
       files
         .filter(file => this.#componentPattern.test(file.name))
         .forEach(file => {
           const path = file.parentPath.replace(basePath.dir + sep, '')
-          const name = file.name.replace(this.#componentPattern, '')
+          let name = file.name.replace(this.#componentPattern, '')
           const segments = path.split(sep)
 
           if (join(file.parentPath, file.name) === join(basePath.dir, this.#template)) {
@@ -121,7 +130,9 @@ export default class Server {
             segments.unshift(basePath.name)
           }
 
-          if (segments.at(-1) !== name) {
+          if (name.toLowerCase() === 'index') {
+            name = segments.at(-1)
+          } else if (segments.at(-1) !== name) {
             segments.push(name)
           }
 
@@ -129,6 +140,7 @@ export default class Server {
             name,
             parentPath: file.parentPath,
             filename: join(file.parentPath, file.name),
+            filetype: file.name.replace(/^.*\./, ''),
             url: join(this.#prefix, ...segments)
           }
 

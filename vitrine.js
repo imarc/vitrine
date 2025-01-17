@@ -7,7 +7,7 @@ export default function vitrinePlugin({
   prefix = '/components',
   template = '_preview.html',
   basePaths = ['resources/styles'],
-  componentPattern = /\.html?$/i,
+  componentPattern = /\.md|\.html?$/i,
 } = {}) {
 
   const server = new Server({ prefix, basePaths, componentPattern, template })
