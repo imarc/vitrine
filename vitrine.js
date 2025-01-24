@@ -43,11 +43,13 @@ export default function vitrinePlugin({
       })
     },
 
-    handleHotUpdate({ file, server }) {
-      console.log('handleHotUpdate', file)
+    handleHotUpdate({ file, modules, server }) {
+      console.log('handleHotUpdate', file, modules)
       if (componentPattern.test(file)) {
         server.ws.send({ type: 'full-reload' })
+        return []
       }
+      return modules
     }
   }
 }
