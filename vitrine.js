@@ -8,9 +8,10 @@ export default function vitrinePlugin({
   template = '_preview.html',
   basePaths = ['resources/styles'],
   componentPattern = /\.md|\.html?$/i,
+  stylesheetPattern = /\.(css|less|sass|scss|styl)$/i
 } = {}) {
 
-  const server = new Server({ prefix, basePaths, componentPattern, template })
+  const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern })
   server.include(includes)
 
   return {
@@ -43,6 +44,7 @@ export default function vitrinePlugin({
     },
 
     handleHotUpdate({ file, server }) {
+      console.log('handleHotUpdate', file)
       if (componentPattern.test(file)) {
         server.ws.send({ type: 'full-reload' })
       }

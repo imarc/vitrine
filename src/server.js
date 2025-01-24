@@ -29,7 +29,10 @@ const defaultTemplate = `
 export default class Server {
   #basePaths;
   #componentPattern;
-  #includes = [];
+  #stylesheetPattern;
+  #includes = [
+    '/@vite/client',
+  ];
   #prefix;
   #template;
 
@@ -37,10 +40,12 @@ export default class Server {
     prefix,
     basePaths,
     componentPattern,
+    stylesheetPattern,
     template,
   } = {}) {
     this.#prefix = prefix
     this.#componentPattern = componentPattern
+    this.#stylesheetPattern = stylesheetPattern
     this.#template = template
 
     this.#basePaths = basePaths.map(path => {
@@ -53,7 +58,7 @@ export default class Server {
   }
 
   include(...files) {
-    this.#includes = [].concat(...files)
+    this.#includes = this.#includes.concat(...files)
   }
 
   parseURLParams(request) {
@@ -75,11 +80,15 @@ export default class Server {
 
   getIncludeTags() {
     return this.#includes
-      .map(include => /\.[jt]s$/i.test(include)
-        ? `<script type="module" src="${include}"></script>`
-        : `<link rel="stylesheet" href="${include}">`
-      )
-      .join('\n')
+      .map(include => {
+        if (include.startsWith('<')) {
+          return include
+        }
+        if (this.#stylesheetPattern.test(include)) {
+          return `<link rel="stylesheet" href="${include}">`
+        }
+        return `<script type="module" src="${include}"></script>`
+      }).join('\n')
   }
 
   async view(params = {}) {
@@ -237,3 +246,4 @@ export default class Server {
     }
   }
 }
+
