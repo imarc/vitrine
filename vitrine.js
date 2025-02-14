@@ -7,7 +7,7 @@ export default function vitrinePlugin({
   prefix = '/components',
   template = '_preview.html',
   basePaths = ['resources/styles'],
-  componentPattern = /^[^_].*\.md|\.html?$/i,
+  componentPattern = /\.md|\.html?$/i,
   stylesheetPattern = /\.(css|less|sass|scss|styl)$/i
 } = {}) {
 
