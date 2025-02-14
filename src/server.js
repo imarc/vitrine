@@ -106,6 +106,7 @@ export default class Server {
         data: () => params,
         methods: {
           markdown: str => marked.parse(str),
+          encode: str => he.encode(str),
         },
         template
       })

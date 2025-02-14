@@ -190,7 +190,7 @@
           <iframe :src="component.url + '?html'"></iframe>
         </main>
         <div class="code">
-          <pre><code>{{ code }}</code></pre>
+          <pre><code>{{ encode(code) }}</code></pre>
           <nav>
             <a
               v-for="file in related"
