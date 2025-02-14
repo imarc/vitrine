@@ -3,9 +3,14 @@ export default {
   props: {
     data: { type: Array, required: true },
   },
+  methods: {
+    sort(arr) {
+      return arr.toSorted((a, b) => a.key?.localeCompare(b.key) || -1)
+    },
+  },
   template: `
     <ul>
-      <li v-for="child of data">
+      <li v-for="child of sort(data)">
         <details v-if="child.toArray().length" open>
           <summary>
             <a v-if="child.url" :href="child.url">{{ child.name || child.key }}</a>

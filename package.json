@@ -13,7 +13,10 @@
   },
   "dependencies": {
     "@vue/server-renderer": "^3.4.38",
+    "fdir": "^6.4.3",
+    "he": "^1.2.0",
     "marked": "^15.0.6",
+    "picomatch": "^4.0.2",
     "semver": "^7.6.3",
     "twig": "^1.16.0",
     "vue": "^3.4.38"

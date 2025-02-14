@@ -1,3 +1,4 @@
+import he from 'he'
 import { fileURLToPath } from 'node:url'
 import { join, sep } from 'node:path'
 import { existsSync } from 'node:fs'
@@ -5,6 +6,7 @@ import { createSSRApp } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { readdir, readFile } from 'node:fs/promises'
 import { marked } from 'marked'
+import { fdir } from 'fdir'
 
 import TreeNode from './TreeNode.js'
 import RecursiveList from './templates/RecursiveList.js'
@@ -107,7 +109,8 @@ export default class Server {
         },
         template
       })
-      return await renderToString(app)
+      const html = await renderToString(app)
+      return he.decode(html)
     } catch (e) {
       console.error(e)
       return '500 Internal Server Error: ' + e.message
@@ -182,21 +185,50 @@ export default class Server {
 
   async findRelatedFiles(component) {
     const files = await readdir(component.parentPath, { withFileTypes: true })
-
-    return files.filter(file => file.isFile())
-      .map(file => {
-      const url = component.filename === join(file.parentPath, file.name)
-        ? component.url
-        : component.url + `?file=${file.name}`
-      return {
-        name: file.name,
-        parentPath: file.parentPath,
-        filename: join(file.parentPath, file.name),
-        debug: this.#prefix,
-        component,
-        url,
+    
+    const seeAlso = []
+    const related = await Promise.all(files.filter(file => file.isFile())
+      .map(async file => {
+        const url = component.filename === join(file.parentPath, file.name)
+          ? component.url
+          : component.url + `?file=${file.name}`
+          
+        const code = await readFile(join(component.parentPath, file.name), { encoding: 'utf8' })
+        const references = code.match(/(?<=@uses.* )(\w+)/gi)
+          
+        if (references) {
+          seeAlso.push(...references)
+        }
+        
+        return {
+          name: file.name,
+          filename: join(file.parentPath, file.name),
+          url,
+        }
+      })
+    )
+    
+    seeAlso.forEach(name => {
+      const searchStuff = `**/${name}.@(js|vue)`
+      const crawler = new fdir().glob(searchStuff).withRelativePaths()
+      
+      let filename = null
+      for (const { dir } of this.#basePaths) {
+        const results = crawler.crawl(dir).sync()
+        if (results.length) {
+          filename = join(dir, results[0])
+          break
+        }
       }
+      
+      related.push({
+        name,
+        filename,
+        url: filename ? (component.url + `?see=${filename}`) : null,
+      })
     })
+    
+    return related
   }
 
   async handle(request) {
@@ -221,10 +253,14 @@ export default class Server {
         related,
       }
 
-      if (component && 'file' in urlParams) {
-        data.viewingFile = urlParams.file
-        data.code = await readFile(join(component.parentPath, urlParams.file), { encoding: 'utf8' })
-
+      if (component && ('file' in urlParams || 'see' in urlParams)) {
+        if ('file' in urlParams) {
+          data.viewingFile = urlParams.file
+          data.code = await readFile(join(component.parentPath, urlParams.file), { encoding: 'utf8' })
+        } else if ('see' in urlParams) {
+          data.viewingFile = urlParams.see
+          data.code = await readFile(urlParams.see, { encoding: 'utf8' })
+        }
       } else if (component?.filename) {
         data.viewingFile = component.filename.replace(/^.*\//, '')
         data.code = await readFile(component.filename, { encoding: 'utf8' })

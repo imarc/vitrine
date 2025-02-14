@@ -5,7 +5,7 @@ export default class TreeNode {
   }
 
   toArray() {
-    return Object.values(this.children).toSorted((a, b) => a.key?.localeCompare(b) || -1)
+    return Object.values(this.children)
   }
 
   set(keys, value) {
