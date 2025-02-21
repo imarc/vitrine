@@ -37,18 +37,21 @@ export default class Server {
   ];
   #prefix;
   #template;
-
+  #isServer;
+  #manifest;
   constructor({
     prefix,
     basePaths,
     componentPattern,
     stylesheetPattern,
     template,
+    isServer = true,
   } = {}) {
     this.#prefix = prefix
     this.#componentPattern = componentPattern
     this.#stylesheetPattern = stylesheetPattern
     this.#template = template
+    this.#isServer = isServer
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -57,6 +60,13 @@ export default class Server {
       }
       return path
     })
+  }
+  
+  setIsServer(isServer) {
+    this.#isServer = isServer
+    if (!this.#isServer) {
+      this.#includes = this.#includes.filter(include => include !== '/@vite/client')
+    }
   }
 
   include(...files) {
@@ -81,7 +91,16 @@ export default class Server {
   }
 
   getIncludeTags() {
-    return this.#includes
+    let includes = this.#includes
+    if (this.#manifest) {
+      includes = includes.map(i => i.replace(/^\//, '')).map(include => {
+        if (include in this.#manifest) {
+          return '/' + this.#manifest[include].file
+        }
+        return include
+      })
+    }
+    return includes
       .map(include => {
         if (include.startsWith('<')) {
           return include
@@ -103,7 +122,7 @@ export default class Server {
         components: {
           RecursiveList,
         },
-        data: () => params,
+        data: () => ({ ...params, isServer: this.#isServer }),
         methods: {
           markdown: str => marked.parse(str),
           encode: str => he.encode(str),
@@ -118,10 +137,10 @@ export default class Server {
     }
   }
 
-  async findComponents(basePaths) {
+  async findComponents() {
     const tree = new TreeNode
 
-    for (const basePath of basePaths) {
+    for (const basePath of this.#basePaths) {
       if (!existsSync(basePath.dir)) {
         console.warn(`Vitrine was not able to access ${basePath.dir}`)
         continue
@@ -133,8 +152,8 @@ export default class Server {
         .forEach(file => {
           const path = file.parentPath.replace(basePath.dir + sep, '')
           let name = file.name.replace(this.#componentPattern, '')
-          const segments = path.split(sep)
-
+          const segments = path === basePath.dir ? [] : path.split(sep)
+          
           if (join(file.parentPath, file.name) === join(basePath.dir, this.#template)) {
             return
           }
@@ -192,7 +211,7 @@ export default class Server {
       .map(async file => {
         const url = component.filename === join(file.parentPath, file.name)
           ? component.url
-          : component.url + `?file=${file.name}`
+          : `${component.url}/@file/${file.name}`
           
         const code = await readFile(join(component.parentPath, file.name), { encoding: 'utf8' })
         const references = code.match(/(?<=@uses.* )(\w+)/gi)
@@ -225,7 +244,7 @@ export default class Server {
       related.push({
         name,
         filename,
-        url: filename ? (component.url + `?see=${filename}`) : null,
+        url: filename ? `${component.url}/@see/${filename}` : null,
       })
     })
     
@@ -234,15 +253,25 @@ export default class Server {
 
   async handle(request) {
     try {
-      const components = await this.findComponents(this.#basePaths)
+      const components = await this.findComponents()
       const segments = request.url
         .replace(this.#prefix, '')
-        .replace(/[#?].*$/, '')
+        .replace(/\/@(html|file|see).*/, '')
+        .replace(/#.*$/, '')
         .split('/')
         .filter(c => c)
+      
+      const viewType = request.url.match(/\/@(html|file|see).*/)?.[1]
       const component = components.get(segments)
       const related = component?.parentPath ? await this.findRelatedFiles(component) : null
-      const urlParams = this.parseURLParams(request)
+      
+      if (component && !component.filename) {
+        const firstChild = component.toArray()?.[0]
+        
+        if (firstChild) {
+          return { redirect: firstChild.url }
+        }
+      }
 
       const data = {
         server: {
@@ -254,20 +283,26 @@ export default class Server {
         related,
       }
 
-      if (component && ('file' in urlParams || 'see' in urlParams)) {
-        if ('file' in urlParams) {
-          data.viewingFile = urlParams.file
-          data.code = await readFile(join(component.parentPath, urlParams.file), { encoding: 'utf8' })
-        } else if ('see' in urlParams) {
-          data.viewingFile = urlParams.see
-          data.code = await readFile(urlParams.see, { encoding: 'utf8' })
+      if (component) {
+        if (viewType === 'file' || viewType === 'see') {
+          const fileSegments = request.url
+            .split(viewType + '/')[1]
+            .split('/')
+          const fileToView = fileSegments.join('/')
+          
+          data.viewingFile = fileToView
+          if (viewType === 'file') {
+            data.code = await readFile(join(component.parentPath, fileToView), { encoding: 'utf8' })
+          } else {
+            data.code = await readFile(fileToView, { encoding: 'utf8' })
+          }
+        } else {
+          data.viewingFile = component.filename?.replace(/^.*\//, '')
+          data.code = await readFile(component.filename, { encoding: 'utf8' })
         }
-      } else if (component?.filename) {
-        data.viewingFile = component.filename.replace(/^.*\//, '')
-        data.code = await readFile(component.filename, { encoding: 'utf8' })
       }
 
-      if ('html' in urlParams) {
+      if (viewType === 'html') {
         return this.render(this.#template, {
           component,
           code: data.code,
@@ -281,6 +316,14 @@ export default class Server {
       console.error(e)
       throw e
     }
+  }
+  
+  async useManifest(manifest) {
+    this.#manifest = JSON.parse(await readFile(manifest, 'utf-8'))
+  }
+
+  updateIncludes(newIncludes) {
+    this.#includes = newIncludes
   }
 }
 

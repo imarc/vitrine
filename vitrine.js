@@ -1,6 +1,8 @@
 import process from 'node:process'
 import semver from 'semver'
 import Server from './src/server.js'
+import { writeFile, mkdir, readFile, copyFile } from 'node:fs/promises'
+import { join, dirname } from 'node:path'
 
 export default function vitrinePlugin({
   includes = [],
@@ -8,7 +10,8 @@ export default function vitrinePlugin({
   template = '_preview.html',
   basePaths = ['resources/styles'],
   componentPattern = /\.md|\.html?$/i,
-  stylesheetPattern = /\.(css|less|sass|scss|styl)$/i
+  stylesheetPattern = /\.(css|less|sass|scss|styl)$/i,
+  outDir = 'dist'
 } = {}) {
 
   const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern })
@@ -29,18 +32,87 @@ export default function vitrinePlugin({
       vite.middlewares.use((req, res, next) => {
         if (req.url.startsWith(prefix)) {
           server.handle(req)
-            .then(body => {
+            .then(response => {
+              if (response?.redirect) {
+                res.writeHead(302, { Location: response.redirect })
+                res.end()
+                return
+              }
               res.setHeader('Content-Type', 'text/html')
-              res.end(body, 'utf8')
+              res.end(response, 'utf8')
             })
-          .catch(() => {
-            res.writeHead(404)
-            res.end()
-          })
+            .catch(() => {
+              res.writeHead(404)
+              res.end()
+            })
         } else {
           next()
         }
       })
+    },
+
+    async closeBundle() {
+      // Get the manifest of built assets
+      server.useManifest(join(outDir, '.vite', 'manifest.json'))
+      server.setIsServer(false)
+      
+      await copyFile('public/main-icons-sprite.svg', join(outDir, 'main-icons-sprite.svg'))
+
+      console.log('Building static component library...')
+      const components = await server.findComponents()
+      
+      const writeStaticFile = async (filePath, content) => {
+        const fullPath = join(outDir, filePath)
+        await mkdir(dirname(fullPath), { recursive: true })
+        await writeFile(fullPath, content)
+      }
+      
+      // Generate the main index
+      const indexHtml = await server.view({ components, server: { prefix, basePaths } })
+      await writeStaticFile(join(prefix.slice(1), 'index.html'), indexHtml)
+
+      // Generate pages for each component
+      for (const component of components.toFlatArray()) {
+        if (component.url) {
+          // Main component view
+          const req = { url: component.url }
+          const html = await server.handle(req)
+          const outputPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), 'index.html')
+          console.log('building', outputPath)
+          await writeStaticFile(outputPath, html)
+
+          // HTML preview version
+          const previewHtml = await server.handle({ url: `${component.url}/@html` })
+          const previewPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), '@html/index.html')
+          await writeStaticFile(previewPath, previewHtml)
+
+          // Generate related file views
+          const related = await server.findRelatedFiles(component)
+          for (const file of related) {
+            if (file.url?.includes('/@file/')) {
+              const fileHtml = await server.handle({ url: file.url })
+              const filePath = join(
+                prefix.slice(1), 
+                component.url.slice(prefix.length + 1),
+                '@file',
+                file.name,
+                'index.html'
+              )
+              await writeStaticFile(filePath, fileHtml)
+            } else if (file.url?.includes('/@see/')) {
+              const seeHtml = await server.handle({ url: file.url })
+              const seePath = join(
+                prefix.slice(1),
+                component.url.slice(prefix.length + 1),
+                '@see',
+                file.name,
+                'index.html'
+              )
+              await writeStaticFile(seePath, seeHtml)
+            }
+          }
+        }
+      }
     },
 
     handleHotUpdate({ file, modules, server }) {
