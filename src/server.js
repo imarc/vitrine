@@ -244,7 +244,7 @@ export default class Server {
       related.push({
         name,
         filename,
-        url: filename ? `${component.url}/@see/${filename}` : null,
+        url: filename ? `${component.url}/@see/${name}` : null,
       })
     })
     
@@ -294,7 +294,12 @@ export default class Server {
           if (viewType === 'file') {
             data.code = await readFile(join(component.parentPath, fileToView), { encoding: 'utf8' })
           } else {
-            data.code = await readFile(fileToView, { encoding: 'utf8' })
+            const relatedComponent = related.find(({ name }) => name === fileToView)
+            if (relatedComponent) {
+              data.code = await readFile(relatedComponent.filename, { encoding: 'utf8' })
+            } else {
+              console.warn(`Unabled to find related component ${fileToView} for component ${component.name}`)
+            }
           }
         } else {
           data.viewingFile = component.filename?.replace(/^.*\//, '')

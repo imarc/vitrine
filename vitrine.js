@@ -78,7 +78,6 @@ export default function vitrinePlugin({
           const req = { url: component.url }
           const html = await server.handle(req)
           const outputPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), 'index.html')
-          console.log('building', outputPath)
           await writeStaticFile(outputPath, html)
 
           // HTML preview version
