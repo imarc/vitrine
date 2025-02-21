@@ -214,9 +214,16 @@ export default class Server {
           : `${component.url}/@file/${file.name}`
           
         const code = await readFile(join(component.parentPath, file.name), { encoding: 'utf8' })
-        const references = code.match(/(?<=@uses.* )(\w+)/gi)
-          
-        if (references) {
+        const uses = code.match(/(?<=@uses.* )(\w+)/gi) || []
+        
+        const tags = code.matchAll(/<(\w+-\w+)[ >]/gi).map(m => m[1]) || []
+        
+        const references = new Set(
+          [...uses, ...tags].map(r => r.replace(/(-.)/, v => v[1].toUpperCase()))
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        )
+        
+        if (references.size) {
           seeAlso.push(...references)
         }
         
