@@ -7,6 +7,10 @@ export default class TreeNode {
   toArray() {
     return Object.values(this.children)
   }
+  
+  toFlatArray() {
+    return [this, ...this.toArray().flatMap(child => child.toFlatArray())]
+  }
 
   set(keys, value) {
     if (keys?.length === 0) {

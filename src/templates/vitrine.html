@@ -41,6 +41,7 @@
     aside {
       grid-row: 1 / -1;
       box-shadow: 0 0 16px #0001, 0 0 8px #0002, 0 0 4px #0003;
+      background: #fff;
       max-height: 100vh;
       line-height: 1.5;
       font-size: 14px;
@@ -133,7 +134,7 @@
       color: black;
       font-weight: bold;
       padding: 0 .25em;
-      right: 0;
+      right: 1em;
       &:hover {
         opacity: 1;
         text-decoration: none;
@@ -215,8 +216,8 @@
       </main>
       <template v-else>
         <main class="preview">
-          <a class="fullscreen" :href="component.url + '?html'">⛶</a>
-          <iframe :src="component.url + '?html'"></iframe>
+          <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
+          <iframe :src="component.url + '/@html'"></iframe>
         </main>
         <div class="code">
           <pre><code>{{ encode(code) }}</code></pre>
@@ -231,6 +232,7 @@
       </template>
     </div>
     <script>hljs.highlightAll()</script>
-    <script type="module" src="/@vite/client"></script>
+    <script v-if="isServer" type="module" src="/@vite/client"></script>
+    <script v-for="include in server.includes" :type="'module'" :src="include"></script>
   </body>
 </html>
