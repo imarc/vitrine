@@ -32,9 +32,14 @@ export default function vitrinePlugin({
       vite.middlewares.use((req, res, next) => {
         if (req.url.startsWith(prefix)) {
           server.handle(req)
-            .then(body => {
+            .then(response => {
+              if (response?.redirect) {
+                res.writeHead(302, { Location: response.redirect })
+                res.end()
+                return
+              }
               res.setHeader('Content-Type', 'text/html')
-              res.end(body, 'utf8')
+              res.end(response, 'utf8')
             })
             .catch(() => {
               res.writeHead(404)

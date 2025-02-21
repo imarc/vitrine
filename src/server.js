@@ -152,8 +152,8 @@ export default class Server {
         .forEach(file => {
           const path = file.parentPath.replace(basePath.dir + sep, '')
           let name = file.name.replace(this.#componentPattern, '')
-          const segments = path.split(sep)
-
+          const segments = path === basePath.dir ? [] : path.split(sep)
+          
           if (join(file.parentPath, file.name) === join(basePath.dir, this.#template)) {
             return
           }
@@ -264,6 +264,14 @@ export default class Server {
       const viewType = request.url.match(/\/@(html|file|see).*/)?.[1]
       const component = components.get(segments)
       const related = component?.parentPath ? await this.findRelatedFiles(component) : null
+      
+      if (component && !component.filename) {
+        const firstChild = component.toArray()?.[0]
+        
+        if (firstChild) {
+          return { redirect: firstChild.url }
+        }
+      }
 
       const data = {
         server: {
@@ -289,7 +297,7 @@ export default class Server {
             data.code = await readFile(fileToView, { encoding: 'utf8' })
           }
         } else {
-          data.viewingFile = component.filename.replace(/^.*\//, '')
+          data.viewingFile = component.filename?.replace(/^.*\//, '')
           data.code = await readFile(component.filename, { encoding: 'utf8' })
         }
       }
