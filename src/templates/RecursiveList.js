@@ -17,14 +17,15 @@ export default {
         <details v-if="child.toArray().length" open>
           <summary>
             <a
-              v-if="child.url"
+              v-if="child.type === 'directory'"
               :href="child.url"
               :class="linkClass(child)"
             >{{ child.name || child.key }}</a>
-            <span
+            <a
               v-else
+              :href="child.url"
               :class="linkClass(child)"
-            >{{ child.name || child.key }}</span>
+            >{{ child.name || child.key }}</a>
           </summary>
           <RecursiveList v-if="child.toArray().length" :data="child.toArray()" />
         </details>

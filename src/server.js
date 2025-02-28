@@ -170,6 +170,7 @@ export default class Server {
 
           const node = {
             name,
+            type: 'component',
             parentPath: file.parentPath,
             filename: join(file.parentPath, file.name),
             filetype: file.name.replace(/^.*\./, ''),
@@ -180,6 +181,27 @@ export default class Server {
         })
     }
 
+    // Second pass - traverse tree to handle directories
+    const processNode = (node, parentSegments = []) => {
+      // If node has children but no URL, it's a directory that needs a URL
+      if (node.toArray().length && !node.url) {
+        const segments = [...parentSegments]
+        if (node.key) segments.push(node.key)
+        
+        node.type = 'directory'
+        node.name = node.key || 'root'
+        node.url = join(this.#prefix, ...segments)
+      }
+
+      // Process all children
+      for (const child of node.toArray()) {
+        const childSegments = [...parentSegments]
+        if (node.key) childSegments.push(node.key)
+        processNode(child, childSegments)
+      }
+    }
+
+    processNode(tree)
     return tree
   }
 
@@ -272,6 +294,7 @@ export default class Server {
       const component = components.get(segments)
       const related = component?.parentPath ? await this.findRelatedFiles(component) : null
       
+      /*
       if (component && !component.filename) {
         const firstChild = component.toArray()?.[0]
         
@@ -279,6 +302,7 @@ export default class Server {
           return { redirect: firstChild.url }
         }
       }
+      */
 
       const data = {
         server: {
@@ -289,8 +313,10 @@ export default class Server {
         component,
         related,
       }
-
-      if (component) {
+      
+      if (component.type === 'directory') {
+        // 
+      } else if (component) {
         if (viewType === 'file' || viewType === 'see') {
           const fileSegments = request.url
             .split(viewType + '/')[1]
@@ -317,7 +343,7 @@ export default class Server {
       if (viewType === 'html') {
         return this.render(this.#template, {
           component,
-          code: data.code,
+          code: data?.code,
           includes: this.getIncludeTags(),
         })
       }

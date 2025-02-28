@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Components</title>
+    <title>Vitrine</title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/tokyo-night-dark.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,9 +52,12 @@
         list-style: none;
       }
       
-      h1 a {
-        color: inherit;
-        padding:1em;
+      h1 {
+        text-align: center;
+        a {
+          color: inherit;
+          padding:1em;
+        }
       }
       
       ul {
@@ -109,6 +112,43 @@
 
       ul, ol, p, pre, table {
         margin: 0 0 2rem;
+      }
+    }
+    .showcase {
+      height: 100vh;
+      overflow: auto;
+      
+      .components {
+        display: grid;
+        grid: auto / repeat(auto-fill, minmax(300px, 1fr));
+        gap: 3rem;
+        padding: 0 1rem;
+        
+        h1 {
+          grid-column: 1 / -1;
+        }
+      }
+      
+      .component {
+      }
+      
+      .iframe-link {
+        display: grid;
+        
+        &::before {
+          grid-area: 1 / 1;
+          content: '';
+        }
+        
+        > iframe {
+          grid-area: 1 / 1;
+        }
+      }
+
+      iframe {
+        border: 0;
+        box-shadow: 0 0 8px #0001 inset, 0 0 4px #0002 inset;
+        width: 100%;
       }
     }
     .preview {
@@ -186,7 +226,7 @@
   <body>
     <div id="root">
       <aside>
-        <h1><a :href="server.prefix">Components</a></h1>
+        <h1><a :href="server.prefix">vitrine</a></h1>
         <RecursiveList :data="components.toArray()" />
       </aside>
       <main v-if="typeof component === 'undefined'" class="documentation">
@@ -210,6 +250,23 @@
         </p>
       </main>
       <main
+        v-if="component.type === 'directory'"
+        class="showcase"
+      >
+        <div class="components">
+          <h1>{{ component.name }}</h1>
+          <div
+            v-for="child of component.toFlatArray().filter(c => c.type === 'component' && c.filetype !== 'md')"
+            class="component"
+          >
+            <h2><a :href="child.url">{{ child.name }}</a></h2>
+            <a class="iframe-link" :href="child.url">
+              <iframe inert loading="lazy" :src="child.url + '/@html'"></iframe>
+            </a>
+          </div>
+        </div>
+      </main>
+      <main
         v-else-if="component.filetype === 'md'"
         class="documentation"
         v-html="markdown(code)">
@@ -219,8 +276,9 @@
           <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
           <iframe :src="component.url + '/@html'"></iframe>
         </main>
-        <div class="code">
+        <div v-if="code" class="code">
           <pre><code>{{ encode(code) }}</code></pre>
+          
           <nav>
             <a
               v-for="file in related"
