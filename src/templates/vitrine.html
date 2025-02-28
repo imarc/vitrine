@@ -250,7 +250,7 @@
         </p>
       </main>
       <main
-        v-if="component.type === 'directory'"
+        v-if="component?.type === 'directory'"
         class="showcase"
       >
         <div class="components">
@@ -267,11 +267,11 @@
         </div>
       </main>
       <main
-        v-else-if="component.filetype === 'md'"
+        v-else-if="component?.filetype === 'md'"
         class="documentation"
         v-html="markdown(code)">
       </main>
-      <template v-else>
+      <template v-else-if="component">
         <main class="preview">
           <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
           <iframe :src="component.url + '/@html'"></iframe>
