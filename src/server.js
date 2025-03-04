@@ -114,7 +114,7 @@ export default class Server {
 
   async view(params = {}) {
     try {
-      let filename = import.meta.resolve('./templates/vitrine.html')
+      let filename = import.meta.resolve('./templates/default.html')
       filename = fileURLToPath(filename)
       const template = await readFile(filename, { encoding: 'utf8' })
 
@@ -252,6 +252,7 @@ export default class Server {
         return {
           name: file.name,
           filename: join(file.parentPath, file.name),
+          slug: file.name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/ /g, '-'),
           url,
         }
       })
@@ -269,14 +270,22 @@ export default class Server {
           break
         }
       }
-      
-      related.push({
-        name,
-        filename,
-        url: filename ? `${component.url}/@see/${name}` : null,
-      })
+
+      if (!related.find(r => r.filename === filename)) {
+        related.push({
+          name,
+          filename,
+          url: filename ? `${component.url}/@see/${name}` : null,
+          slug: name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/ /g, '-'),
+        })
+      }
     })
-    
+
+
+    await Promise.all(related.map(
+      async r => r.code = await readFile(r.filename, { encoding: 'utf8' })
+    ))
+
     return related
   }
 
@@ -306,6 +315,7 @@ export default class Server {
 
       const data = {
         server: {
+          url: request.url,
           prefix: this.#prefix,
           basePaths: this.#basePaths
         },
@@ -313,7 +323,7 @@ export default class Server {
         component,
         related,
       }
-      
+
       if (component.type === 'directory') {
         // 
       } else if (component) {
