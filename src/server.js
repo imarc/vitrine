@@ -114,7 +114,7 @@ export default class Server {
 
   async view(params = {}) {
     try {
-      let filename = import.meta.resolve('./templates/vitrine.html')
+      let filename = import.meta.resolve('./templates/default.html')
       filename = fileURLToPath(filename)
       const template = await readFile(filename, { encoding: 'utf8' })
 
