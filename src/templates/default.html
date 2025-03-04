@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE h>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
@@ -180,37 +180,52 @@
         text-decoration: none;
       }
     }
-    .code {
-      align-items: start;
-      color: white;
-      display: grid;
-      font-size: inherit;
-      margin: 0;
-      overflow: auto;
+    .files {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 0 .25em;
+      container-type: size;
 
-      nav,
-      pre {
-        grid-area: 1 / 1 / 2 / 2;
+      > div {
+        display: contents;
       }
 
-      nav {
-        a {
-          border-bottom: 1px solid #fff8;
-          color: #fff8;
-          display: inline flex;
-          font-family: monospace;
-          padding: 0.25em 0.5em;
+      > div > a {
+        padding: .25em .5em;
+        text-align: center;
+        background: #555;
+        border-radius: .5em .5em 0 0;
+        color: #fff;
+        order: -1;
 
-          &.active {
-            box-shadow: 0 -2px 0 inset;
-            color: #fff;
-          }
+        &:hover {
+          text-decoration: none;
+        }
+      }
 
-          &:hover {
-            background: #0002;
-            color: #fff;
+      a:target {
+        background: #1a1b26;
+
+        + .file {
+          display: block;
+        }
+      }
+
+      &:not(:has(:target)) {
+        > div:first-child > a {
+          background: #1a1b26;
+
+          + .file {
+            display: block;
           }
         }
+      }
+
+      .file {
+        display: none;
+        width: 100%;
+        max-height: calc(100cqh - 1.75rem);
+        overflow: scroll;
       }
 
       pre {
@@ -276,16 +291,13 @@
           <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
           <iframe :src="component.url + '/@html'"></iframe>
         </main>
-        <div v-if="code" class="code">
-          <pre><code>{{ encode(code) }}</code></pre>
-          
-          <nav>
-            <a
-              v-for="file in related"
-              :href="file.url"
-              :class="{ active: viewingFile === file.name }"
-              >{{ file.name }}</a>
-          </nav>
+        <div class="files">
+          <div v-for="(file, i) in related">
+            <a :href="`#${i == 0 ? '' : file.slug}`" :id="file.slug">{{ file.name }}</a>
+            <div class="file">
+              <pre><code>{{ encode(file.code) }}</code></pre>
+            </div>
+          </div>
         </div>
       </template>
     </div>
