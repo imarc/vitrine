@@ -6,6 +6,7 @@ import { join, dirname } from 'node:path'
 
 export default function vitrinePlugin({
   includes = [],
+  includeVite = true,
   prefix = '/components',
   template = '_preview.html',
   basePaths = ['resources/styles'],
@@ -15,6 +16,11 @@ export default function vitrinePlugin({
 } = {}) {
 
   const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern })
+
+  if (includeVite) {
+    server.include('/@vite/client')
+  }
+
   server.include(includes)
 
   return {

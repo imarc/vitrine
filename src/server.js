@@ -32,9 +32,7 @@ export default class Server {
   #basePaths;
   #componentPattern;
   #stylesheetPattern;
-  #includes = [
-    '/@vite/client',
-  ];
+  #includes = [];
   #prefix;
   #template;
   #isServer;
