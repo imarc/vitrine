@@ -5,7 +5,18 @@ export default {
   },
   methods: {
     sort(arr) {
-      return arr.toSorted((a, b) => a.key?.localeCompare(b.key) || -1)
+      return arr.toSorted((a, b) => {
+
+        if (a.key.charAt(0) === '@' && b.key.charAt(0) !== '@') {
+          return 1
+        }
+
+        if (b.key.charAt(0) === '@' && a.key.charAt(0) !== '@') {
+          return -1
+        }
+
+        return a.key?.localeCompare(b.key) || -1
+      })
     },
     linkClass(child) {
       return child.filename?.match(/(?<=\.).*/) || ''
