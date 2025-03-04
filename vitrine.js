@@ -85,32 +85,6 @@ export default function vitrinePlugin({
             const previewHtml = await server.handle({ url: `${component.url}/@html` })
             const previewPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), '@html/index.html')
             await writeStaticFile(previewPath, previewHtml)
-
-            // Generate related file views
-            const related = await server.findRelatedFiles(component)
-            for (const file of related) {
-              if (file.url?.includes('/@file/')) {
-                const fileHtml = await server.handle({ url: file.url })
-                const filePath = join(
-                  prefix.slice(1), 
-                  component.url.slice(prefix.length + 1),
-                  '@file',
-                  file.name,
-                  'index.html'
-                )
-                await writeStaticFile(filePath, fileHtml)
-              } else if (file.url?.includes('/@see/')) {
-                const seeHtml = await server.handle({ url: file.url })
-                const seePath = join(
-                  prefix.slice(1),
-                  component.url.slice(prefix.length + 1),
-                  '@see',
-                  file.name,
-                  'index.html'
-                )
-                await writeStaticFile(seePath, seeHtml)
-              }
-            }
           }
         }
       }
