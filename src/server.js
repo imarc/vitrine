@@ -60,6 +60,10 @@ export default class Server {
     })
   }
   
+  async useManifest(manifest) {
+    this.#manifest = JSON.parse(await readFile(manifest, 'utf-8'))
+  }
+  
   setIsServer(isServer) {
     this.#isServer = isServer
     if (!this.#isServer) {
@@ -223,6 +227,20 @@ export default class Server {
     return this.interpolate(defaultTemplate, params)
   }
 
+  async renderDirectory(template, params) {
+    const code = params.children
+      .toSorted((a, b) => a.name.localeCompare(b.name))
+      .map(child =>
+    `<div style="margin-bottom: 3rem">
+      <h4><a href="${child.url}">${child.name}</a></h4>
+      <div>${child.code}</div>
+    </div>`).join('\n')
+    return await this.render(template, {
+      ...params,
+      code
+    })
+  }
+
   async findRelatedFiles(component) {
     const files = await readdir(component.parentPath, { withFileTypes: true })
     
@@ -296,21 +314,11 @@ export default class Server {
         .replace(/#.*$/, '')
         .split('/')
         .filter(c => c)
+        .map(decodeURIComponent)
       
-      const viewType = request.url.match(/\/@(html|file|see).*/)?.[1]
       const component = components.get(segments)
       const related = component?.parentPath ? await this.findRelatedFiles(component) : null
       
-      /*
-      if (component && !component.filename) {
-        const firstChild = component.toArray()?.[0]
-        
-        if (firstChild) {
-          return { redirect: firstChild.url }
-        }
-      }
-      */
-
       const data = {
         server: {
           url: request.url,
@@ -322,33 +330,27 @@ export default class Server {
         related,
       }
 
-      if (component.type === 'directory') {
-        // 
-      } else if (component) {
-        if (viewType === 'file' || viewType === 'see') {
-          const fileSegments = request.url
-            .split(viewType + '/')[1]
-            .split('/')
-          const fileToView = fileSegments.join('/')
-          
-          data.viewingFile = fileToView
-          if (viewType === 'file') {
-            data.code = await readFile(join(component.parentPath, fileToView), { encoding: 'utf8' })
-          } else {
-            const relatedComponent = related.find(({ name }) => name === fileToView)
-            if (relatedComponent) {
-              data.code = await readFile(relatedComponent.filename, { encoding: 'utf8' })
-            } else {
-              console.warn(`Unabled to find related component ${fileToView} for component ${component.name}`)
-            }
-          }
-        } else {
-          data.viewingFile = component.filename?.replace(/^.*\//, '')
-          data.code = await readFile(component.filename, { encoding: 'utf8' })
+      if (component && component.type === 'directory') {
+        data.children = await Promise.all(component.toArray()
+          .filter(c => c.type === 'component' && c.filetype !== 'md')
+          .map(async c => {
+            c.code = await readFile(c.filename, { encoding: 'utf8' })
+            return c
+          })
+        )
+        data.includes = this.getIncludeTags()
+
+        if (request.url.match(/\/@html/)) {
+          return this.renderDirectory(this.#template, data)
         }
+
+      } else if (component) {
+        data.viewingFile = component.filename?.replace(/^.*\//, '')
+        data.code = await readFile(component.filename, { encoding: 'utf8' })
+        data.includes = this.getIncludeTags()
       }
 
-      if (viewType === 'html') {
+      if (request.url.match(/\/@html/)) {
         return this.render(this.#template, {
           component,
           code: data?.code,
@@ -362,14 +364,6 @@ export default class Server {
       console.error(e)
       throw e
     }
-  }
-  
-  async useManifest(manifest) {
-    this.#manifest = JSON.parse(await readFile(manifest, 'utf-8'))
-  }
-
-  updateIncludes(newIncludes) {
-    this.#includes = newIncludes
   }
 }
 
