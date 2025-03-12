@@ -86,7 +86,7 @@ export default function vitrinePlugin({
           const outputPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), 'index.html')
           await writeStaticFile(outputPath, html)
 
-          if (component.type === 'component') {
+          if (component.type === 'component' || component.type === 'directory') {
             // HTML preview version
             const previewHtml = await server.handle({ url: `${component.url}/@html` })
             const previewPath = join(prefix.slice(1), component.url.slice(prefix.length + 1), '@html/index.html')

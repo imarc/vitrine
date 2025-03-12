@@ -232,7 +232,7 @@ export default class Server {
       .toSorted((a, b) => a.name.localeCompare(b.name))
       .map(child =>
     `<div style="margin-bottom: 3rem">
-      <h4><a href="${child.url}">${child.name}</a></h4>
+      <h4><a target="_parent" href="${child.url}">${child.name}</a></h4>
       <div>${child.code}</div>
     </div>`).join('\n')
     return await this.render(template, {
@@ -245,7 +245,19 @@ export default class Server {
     const files = await readdir(component.parentPath, { withFileTypes: true })
     
     const seeAlso = []
-    const related = await Promise.all(files.filter(file => file.isFile())
+    const related = await Promise.all(
+      files
+      .filter(file => {
+        if (!file.isFile()) {
+          return false
+        }
+
+        if (this.#componentPattern.test(file.name) && !file.name.startsWith(component.name + '.')) {
+          return false
+        }
+
+        return true
+      })
       .map(async file => {
         const url = component.filename === join(file.parentPath, file.name)
           ? component.url
@@ -302,7 +314,12 @@ export default class Server {
       async r => r.code = await readFile(r.filename, { encoding: 'utf8' })
     ))
 
-    return related
+    return related.toSorted((a, b) => {
+      if (this.#componentPattern.test(a.name)) {
+        return -1
+      }
+      return a.name.localeCompare(b.name)
+    })
   }
 
   async handle(request) {
@@ -331,7 +348,7 @@ export default class Server {
       }
 
       if (component && component.type === 'directory') {
-        data.children = await Promise.all(component.toArray()
+        data.children = await Promise.all(component.toFlatArray()
           .filter(c => c.type === 'component' && c.filetype !== 'md')
           .map(async c => {
             c.code = await readFile(c.filename, { encoding: 'utf8' })

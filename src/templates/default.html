@@ -271,7 +271,7 @@
         v-if="component?.type === 'directory'"
         class="showcase"
       >
-        <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
+        <a class="fullscreen" target="_parent" :href="component.url + '/@html'">⛶</a>
         <iframe :src="component.url + '/@html'"></iframe>
       </main>
       <main
