@@ -311,7 +311,7 @@ export default class Server {
 
 
     await Promise.all(related.map(
-      async r => r.code = await readFile(r.filename, { encoding: 'utf8' })
+      async r => r.code = r.filename ? (await readFile(r.filename, { encoding: 'utf8' })) : null
     ))
 
     return related.toSorted((a, b) => {
