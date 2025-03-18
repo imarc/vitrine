@@ -126,8 +126,8 @@ export default class Server {
         },
         data: () => ({ ...params, isServer: this.#isServer }),
         methods: {
-          markdown: str => marked.parse(str),
-          encode: str => he.encode(str),
+          markdown: str => str ? marked.parse(str) : '',
+          encode: str => str ? he.encode(str) : '',
         },
         template
       })
@@ -272,6 +272,7 @@ export default class Server {
           [...uses, ...tags].map(r => r.replace(/(-.)/, v => v[1].toUpperCase()))
             .map(s => s.charAt(0).toUpperCase() + s.slice(1))
         )
+
         
         if (references.size) {
           seeAlso.push(...references)
@@ -299,7 +300,7 @@ export default class Server {
         }
       }
 
-      if (!related.find(r => r.filename === filename)) {
+      if (filename && !related.find(r => r.filename === filename)) {
         related.push({
           name,
           filename,
