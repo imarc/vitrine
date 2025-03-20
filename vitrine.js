@@ -1,7 +1,7 @@
 import process from 'node:process'
 import semver from 'semver'
 import Server from './src/server.js'
-import { writeFile, mkdir, readFile, copyFile } from 'node:fs/promises'
+import { writeFile, mkdir, copyFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 
 export default function vitrinePlugin({
