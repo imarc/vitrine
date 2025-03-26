@@ -61,3 +61,14 @@ Contributing
 ------------
 
 Vitrine is being developed as an open source project and welcomes contributions. Vitrine's goal is to maintain a small footprint and not be tied to any specific framework - we may even remove the dependency on Vue for SSR. It should work anywhere Vite does.
+
+
+### Working on Vitrine
+
+The recommmended way to work on vitrine is to start with a parent project (like [imarc/pronto](https://github.com/imarc/pronto)), checkout out both the parent project and vitrine.
+
+1. Within Vitrine's folder, run `npm link`
+2. Within the parent project folder, run `npm link vitrine`
+3. Run `npm run dev` within the parent project.
+
+Using `npm link`, you can develop and test changes to Vitrine and see how it handles teh components in your parent project.
