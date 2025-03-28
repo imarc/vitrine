@@ -28,15 +28,18 @@ const defaultTemplate = `
   </html>
 `
 
+
 export default class Server {
   #basePaths;
   #componentPattern;
-  #stylesheetPattern;
   #includes = [];
-  #prefix;
-  #template;
   #isServer;
   #manifest;
+  #prefix;
+  #sortOrder;
+  #stylesheetPattern;
+  #template;
+
   constructor({
     prefix,
     basePaths,
@@ -45,11 +48,12 @@ export default class Server {
     template,
     isServer = true,
   } = {}) {
-    this.#prefix = prefix
     this.#componentPattern = componentPattern
+    this.#isServer = isServer
+    this.#prefix = prefix
+    this.#sortOrder = ['html', 'css', 'scss', 'vue', 'js']
     this.#stylesheetPattern = stylesheetPattern
     this.#template = template
-    this.#isServer = isServer
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -58,6 +62,14 @@ export default class Server {
       }
       return path
     })
+  }
+
+  sortKey(filename) {
+    const [ _, ext ] = filename.match(/\.([^.]*)$/)
+    if (this.#sortOrder.includes(ext.toLowerCase())) {
+      return `${this.#sortOrder.indexOf(ext.toLowerCase())} ${filename}`
+    }
+    return `${this.#sortOrder.length} ${filename}`
   }
   
   async useManifest(manifest) {
@@ -264,18 +276,24 @@ export default class Server {
           : `${component.url}/@file/${file.name}`
           
         const code = await readFile(join(component.parentPath, file.name), { encoding: 'utf8' })
-        const uses = code.match(/(?<=@uses.* )(\w+)/gi) || []
-        
-        const tags = code.matchAll(/<(\w+-\w+)[ >]/gi).map(m => m[1]) || []
-        
-        const references = new Set(
-          [...uses, ...tags].map(r => r.replace(/(-.)/, v => v[1].toUpperCase()))
-            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-        )
 
+        const uses = code.match(/(?<=@uses.* )(\w+)/gi) || []
+        const tags = code.matchAll(/<(\w+-\w+)[ >]/gi).map(m => m[1]) || []
+        const directives = code.matchAll(/<[^>]*(?<!\w)(v-[\w-]+)[^>]*>/gi).map(m => m[1]) || []
         
-        if (references.size) {
-          seeAlso.push(...references)
+        const references =
+          [...uses, ...tags]
+            .map(r => r.replace(/(-.)/, v => v[1].toUpperCase()))
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+
+        const moreReferences = directives
+            .map(r => r.replace(/(-.)/, v => v[1].toUpperCase()))
+            .toArray()
+
+        references.push(...moreReferences)
+        
+        if (references.length) {
+          seeAlso.push(...(new Set(references)))
         }
         
         return {
@@ -286,7 +304,7 @@ export default class Server {
         }
       })
     )
-    
+
     seeAlso.forEach(name => {
       const searchStuff = `**/${name}.@(js|vue)`
       const crawler = new fdir().glob(searchStuff).withRelativePaths()
@@ -302,7 +320,7 @@ export default class Server {
 
       if (filename && !related.find(r => r.filename === filename)) {
         related.push({
-          name,
+          name: filename.replace(/.*\//, ''),
           filename,
           url: filename ? `${component.url}/@see/${name}` : null,
           slug: name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/ /g, '-'),
@@ -316,10 +334,7 @@ export default class Server {
     ))
 
     return related.toSorted((a, b) => {
-      if (this.#componentPattern.test(a.name)) {
-        return -1
-      }
-      return a.name.localeCompare(b.name)
+      return this.sortKey(a.name).localeCompare(this.sortKey(b.name));
     })
   }
 
