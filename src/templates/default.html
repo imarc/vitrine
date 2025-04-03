@@ -312,7 +312,7 @@
     <script>
       hljs.highlightAll()
       const path = location.pathname.replace(/\/$/, '')
-      document.querySelector(`aside a[href^="${path}"`).classList.add('active')
+      document.querySelector(`aside a[href^="${path}" i]`).classList.add('active')
 
       const detailsState = sessionStorage.getItem('detailsState')?.split(',').map(v => parseInt(v)) || [ 1 ]
       const details = [...document.querySelectorAll('aside details')]
