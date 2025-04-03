@@ -40,11 +40,12 @@
     }
     aside {
       grid-row: 1 / -1;
-      box-shadow: 0 0 16px #0001, 0 0 8px #0002, 0 0 4px #0003;
-      background: #fff;
+      background: #2c2c2c;
+      color: #fff;
+      font-size: 11px;
+      font-family: Inter;
       max-height: 100vh;
       line-height: 1.5;
-      font-size: 14px;
       overflow: scroll;
 
       summary {
@@ -55,8 +56,16 @@
       h1 {
         text-align: center;
         a {
-          color: inherit;
-          padding:1em;
+          padding: .5rem;
+        }
+      }
+
+      a {
+        color: inherit;
+        color: #fff;
+
+        &:visited {
+          color: #ccc;
         }
       }
       
@@ -65,36 +74,41 @@
         padding: 0;
       }
       
-      summary, li > a {
-        padding: 0 .5em .25em 1em;
+      summary,
+      li > a {
+        padding: .25em .5em;
         display: flex;
-        justify-content: space-between;
+        gap: .25em;
         user-select: none;
+        user-select: none;
+        margin: 0 10px 4px 4px;
+        border-radius: 5px;
+
+        &.active,
         &:hover {
-          background: #00f1;
+          background: #fff1;
         }
         
-        ul ul & {
-          padding-left: 2em;
-        }
-        ul ul ul & {
-          padding-left: 3em;
-        }
-        ul ul ul ul & {
-          padding-left: 4em;
-        }
-        ul ul ul ul ul & {
-          padding-left: 5em;
-        }
+        ul ul & { padding-left: 2em; }
+        ul ul ul & { padding-left: 3em; }
+        ul ul ul ul & { padding-left: 4em; }
+        ul ul ul ul ul & { padding-left: 5em; }
+      }
+
+      summary > a {
+        display: flex;
+        gap: .25em;
       }
       
       summary::after {
-        opacity: .25;
+        opacity: .75;
         content: '⏵';
+        margin-left: auto;
       }
       
       details[open] > summary::after {
         content: '⏷';
+        opacity: .25;
       }
     }
     .documentation {
@@ -294,7 +308,23 @@
         </div>
       </template>
     </div>
-    <script>hljs.highlightAll()</script>
     <script v-if="isServer" type="module" src="/@vite/client"></script>
+    <script>
+      hljs.highlightAll()
+      document.querySelector(`aside a[href="${location.pathname}"`).classList.add('active')
+
+      const detailsState = sessionStorage.getItem('detailsState')?.split(',').map(v => parseInt(v)) || [ 1 ]
+      const details = [...document.querySelectorAll('aside details')]
+
+      const toggle = ({ target }) => {
+        detailsState[details.indexOf(target)] = target.open ? 1 : 0
+        sessionStorage.setItem('detailsState', detailsState.join())
+      }
+
+      details.forEach((e, i) => {
+        e.open = detailsState?.[i]
+        e.addEventListener('toggle', toggle)
+      })
+    </script>
   </body>
 </html>
