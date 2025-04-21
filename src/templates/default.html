@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
     <style>
+    @view-transition {
+        navigation: auto;
+    }
     * {
       box-sizing: border-box;
     }
@@ -16,31 +19,17 @@
       font-family: Avenir, Montserrat, Corbel, 'URW Gothic', source-sans-pro, sans-serif;
       margin: 0;
     }
-    a {
+    a:not(:hover) {
       text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
     }
     #root {
+      background: conic-gradient(#0002 90deg, #0000 90deg 180deg, #0002 180deg 270deg, #0000 270deg) #444 top / 2em 2em;
       display: grid;
-      grid-template: auto 1fr / 200px 1fr;
+      grid: "aside main" auto "aside main" 1fr / 200px 1fr;
       height: 100%;
-
-      &:has(.preview) {
-        background: conic-gradient(
-            #0002 90deg,
-            #0000 90deg 180deg,
-            #0002 180deg 270deg,
-            #0000 270deg
-          )
-          #444
-          top / 2em 2em;
-      }
     }
     aside {
-      grid-row: 1 / -1;
+      grid-row: aside;
       background: #2c2c2c;
       color: #fff;
       font-size: 14px;
@@ -59,7 +48,6 @@
       }
 
       a {
-        color: inherit;
         color: #fff;
 
         &:visited {
@@ -71,17 +59,21 @@
         list-style: none;
         padding: 0;
       }
+
+      summary,
+      summary > a,
+      li > a {
+        display: flex;
+        gap: .25em;
+      }
       
       summary,
       li > a {
-        padding: .25em .5em;
-        display: flex;
-        gap: .25em;
-        user-select: none;
-        user-select: none;
-        margin: 0 10px 4px 4px;
         border-radius: 5px;
-        transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1);
+        margin: 0 10px 4px 4px;
+        padding: .25em .5em;
+        transition: all 150ms cubic-bezier(0.22, 1, 0.36, 1);
+        user-select: none;
 
         &.active,
         &:hover {
@@ -93,11 +85,6 @@
         ul ul ul & { padding-left: 3em; }
         ul ul ul ul & { padding-left: 4em; }
         ul ul ul ul ul & { padding-left: 5em; }
-      }
-
-      summary > a {
-        display: flex;
-        gap: .25em;
       }
       
       summary::after {
@@ -112,8 +99,9 @@
       }
     }
     .documentation {
+      background: #fff;
       font-family: Merriweather, Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif;
-      grid-area: 1 / 2 / 3 / 3;
+      grid-area: main;
       line-height: 1.75;
       color: #000b;
       padding: 2rem max(clamp(2rem, 5vw, 5rem), 100% - 960px - 5rem) 2rem clamp(2rem, 5vw, 5rem);
@@ -136,6 +124,7 @@
       }
     }
     .showcase {
+      background: #fff;
       height: 100vh;
       overflow: auto;
       
@@ -150,9 +139,6 @@
         }
       }
       
-      .component {
-      }
-
       .example {
         max-height: 20rem;
         overflow: hidden;
@@ -217,13 +203,13 @@
 
       > div > a {
         padding: .25em .5em;
-        text-align: center;
         background: #555;
         border-radius: .5em .5em 0 0;
         color: #fff;
         order: -1;
 
         &:hover {
+          background: color-mix(in srgb, #555, #1a1b26);
           text-decoration: none;
         }
       }
