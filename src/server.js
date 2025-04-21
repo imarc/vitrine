@@ -377,10 +377,13 @@ export default class Server {
           return this.renderDirectory(this.#template, data)
         }
 
-      } else if (component) {
+      } else if (component && component.filename) {
         data.viewingFile = component.filename?.replace(/^.*\//, '')
         data.code = await readFile(component.filename, { encoding: 'utf8' })
         data.includes = this.getIncludeTags()
+      } else {
+        console.error("Error determining component", component)
+        return
       }
 
       if (request.url.match(/\/@html/)) {
