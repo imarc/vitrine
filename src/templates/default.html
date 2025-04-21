@@ -27,6 +27,14 @@
       display: grid;
       grid: "aside main" auto "aside main" 1fr / 200px 1fr;
       height: 100%;
+
+      &:has(.hide-code :checked) {
+        grid-template-rows: 1fr auto;
+
+        .preview {
+          height: auto;
+        }
+      }
     }
     aside {
       grid-row: aside;
@@ -179,23 +187,33 @@
         width: 100%;
       }
     }
-    .fullscreen {
+
+    .fullscreen,
+    .hide-code {
       position: absolute;
       opacity: .25;
       color: black;
       font-weight: bold;
       padding: 0 .25em;
       right: 1em;
+      user-select: none;
       &:hover {
         opacity: 1;
         text-decoration: none;
       }
     }
+
+    .hide-code {
+      right: 2em;
+      input { display: none; }
+    }
+
     .files {
       display: flex;
       flex-flow: row wrap;
       gap: 0 .25em;
       container-type: size;
+      position: relative;
 
       > div {
         display: contents;
@@ -279,7 +297,7 @@
         v-if="component?.type === 'directory'"
         class="showcase"
       >
-        <a class="fullscreen" target="_parent" :href="component.url + '/@html'">⛶</a>
+        <a class="fullscreen" target="_parent" :href="component.url + '/@html'" title="Open example fullscreen">⛶</a>
         <iframe :src="component.url + '/@html'"></iframe>
       </main>
       <main
@@ -289,7 +307,8 @@
       </main>
       <template v-else-if="component">
         <main class="preview" id="app">
-          <a class="fullscreen" :href="component.url + '/@html'">⛶</a>
+          <a class="fullscreen" :href="component.url + '/@html'" title="Open example fullscreen">⛶</a>
+          <label class="hide-code" title="Toggle bottom code panel"><input type="checkbox">⬒</label>
           <iframe :src="component.url + '/@html'"></iframe>
         </main>
         <div class="files">
@@ -319,6 +338,10 @@
         e.open = detailsState?.[i]
         e.addEventListener('toggle', toggle)
       })
+
+      const hideCodeEl = document.querySelector('.hide-code input')
+      hideCodeEl.checked = sessionStorage.getItem('hideCode') === 'true'
+      hideCodeEl.addEventListener('change', evt => sessionStorage.setItem('hideCode', evt.target.checked))
     </script>
   </body>
 </html>
