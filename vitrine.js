@@ -12,7 +12,8 @@ export default function vitrinePlugin({
   basePaths = ['resources/styles'],
   componentPattern = /\.md|\.html?$/i,
   stylesheetPattern = /\.(css|less|sass|scss|styl)$/i,
-  outDir = 'dist'
+  outDir = 'dist',
+  manifestDir = undefined
 } = {}) {
 
   const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern })
@@ -59,10 +60,13 @@ export default function vitrinePlugin({
 
     async closeBundle() {
       // Get the manifest of built assets
-      server.useManifest(join(outDir, '.vite', 'manifest.json'))
+      if (manifestDir === undefined) {
+        manifestDir = join(outDir, '.vite')
+      }
+      if (manifestDir) {
+        server.useManifest(join(manifestDir, 'manifest.json'))
+      }
       server.setIsServer(false)
-      
-      await copyFile('public/main-icons-sprite.svg', join(outDir, 'main-icons-sprite.svg'))
 
       console.log('Building static component library...')
       const components = await server.findComponents()
