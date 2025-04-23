@@ -13,7 +13,8 @@ export default function vitrinePlugin({
   componentPattern = /\.md|\.html?$/i,
   stylesheetPattern = /\.(css|less|sass|scss|styl)$/i,
   outDir = 'dist',
-  manifestDir = undefined
+  manifestDir = undefined,
+  buildLibrary = true
 } = {}) {
 
   const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern })
@@ -59,6 +60,10 @@ export default function vitrinePlugin({
     },
 
     async closeBundle() {
+      if (!buildLibrary) {
+        return
+      }
+
       // Get the manifest of built assets
       if (manifestDir === undefined) {
         manifestDir = join(outDir, '.vite')
