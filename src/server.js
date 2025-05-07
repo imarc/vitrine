@@ -73,7 +73,13 @@ export default class Server {
   }
   
   async useManifest(manifest) {
-    this.#manifest = JSON.parse(await readFile(manifest, 'utf-8'))
+    this.#manifest = await
+      readFile(manifest, 'utf-8')
+        .then(file => JSON.parse(file))
+        .catch(() => {
+          console.error('Unable to read the manifest.json, it might not exist yet.')
+          return null
+        })
   }
   
   setIsServer(isServer) {
