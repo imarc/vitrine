@@ -40,6 +40,7 @@ export default class Server {
   #stylesheetPattern;
   #template;
   #name;
+  #logo;
 
   constructor({
     prefix,
@@ -49,6 +50,7 @@ export default class Server {
     template,
     isServer = true,
     name,
+    logo,
   } = {}) {
     this.#componentPattern = componentPattern
     this.#isServer = isServer
@@ -57,6 +59,7 @@ export default class Server {
     this.#stylesheetPattern = stylesheetPattern
     this.#template = template
     this.#name = name
+    this.#logo = logo
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -145,7 +148,13 @@ export default class Server {
         components: {
           RecursiveList,
         },
-        data: () => ({ ...params, isServer: this.#isServer, name: this.#name }),
+        data: () => ({
+          ...params,
+          isServer:
+          this.#isServer,
+          name: this.#name,
+          logo: this.#logo
+        }),
         methods: {
           markdown: str => str ? marked.parse(str) : '',
           encode: str => str ? he.encode(str) : '',

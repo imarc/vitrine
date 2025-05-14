@@ -30,7 +30,7 @@ Options
 * **includes** - An array of paths to files that Vitrine should include. You almost always want to set this. Default: `[]`. Example: `includes: ['/src/main.js']`
 * **basePaths** - An array of directory paths to look in for components and documentation. Default: `['resources/styles']`.
 * **name** - Set the name of your pattern library. Default `vitrine`.
-* **logo** - Provide HTML to use for the logo for your pattern library 
+* **logo** - Provide HTML to use for the logo for your pattern library. Default: uses `name`.
 
 **Advanced options**
 
