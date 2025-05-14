@@ -39,6 +39,7 @@ export default class Server {
   #sortOrder;
   #stylesheetPattern;
   #template;
+  #name;
 
   constructor({
     prefix,
@@ -47,6 +48,7 @@ export default class Server {
     stylesheetPattern,
     template,
     isServer = true,
+    name,
   } = {}) {
     this.#componentPattern = componentPattern
     this.#isServer = isServer
@@ -54,6 +56,7 @@ export default class Server {
     this.#sortOrder = ['html', 'css', 'scss', 'vue', 'js']
     this.#stylesheetPattern = stylesheetPattern
     this.#template = template
+    this.#name = name
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -142,7 +145,7 @@ export default class Server {
         components: {
           RecursiveList,
         },
-        data: () => ({ ...params, isServer: this.#isServer }),
+        data: () => ({ ...params, isServer: this.#isServer, name: this.#name }),
         methods: {
           markdown: str => str ? marked.parse(str) : '',
           encode: str => str ? he.encode(str) : '',
