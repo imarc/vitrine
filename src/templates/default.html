@@ -37,12 +37,14 @@
       }
     }
     aside {
-      grid-row: aside;
       background: #2c2c2c;
       color: #fff;
+      display: flex;
+      flex-flow: column;
       font-size: 14px;
-      max-height: 100vh;
+      grid-row: aside;
       line-height: 1.5;
+      max-height: 100vh;
       overflow: scroll;
 
       summary {
@@ -58,6 +60,7 @@
         font-size: 16px;
         text-align: center;
         padding: 1rem;
+        margin-bottom: 0;
 
         svg, img {
           max-width: 100%;
@@ -114,6 +117,14 @@
       details[open] > summary::after {
         content: '⏷';
         opacity: .25;
+      }
+
+      .version {
+        align-self: center;
+        font-variant-numeric: lining-nums;
+        margin-top: auto;
+        opacity: .5;
+        padding: 1em;
       }
     }
     .documentation {
@@ -283,6 +294,7 @@
       <aside>
         <h1><a :href="server.prefix" v-html="logo || name"></a></h1>
         <RecursiveList :data="components.toArray()" />
+        <div class="version">{{ version }}</div>
       </aside>
       <main v-if="typeof component === 'undefined'" class="documentation">
         <h1>404'd!</h1>

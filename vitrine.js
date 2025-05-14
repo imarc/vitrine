@@ -17,9 +17,10 @@ export default function vitrinePlugin({
   buildLibrary = true,
   name = 'Vitrine',
   logo = undefined,
+  version = undefined,
 } = {}) {
 
-  const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern, name, logo })
+  const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern, name, logo, version })
 
   if (includeVite) {
     server.include('/@vite/client')

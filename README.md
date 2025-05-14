@@ -31,6 +31,7 @@ Options
 * **basePaths** - An array of directory paths to look in for components and documentation. Default: `['resources/styles']`.
 * **name** - Set the name of your pattern library. Default `vitrine`.
 * **logo** - Provide HTML to use for the logo for your pattern library. Default: uses `name`.
+* **version** - An optional version to display for your component library.
 
 **Advanced options**
 

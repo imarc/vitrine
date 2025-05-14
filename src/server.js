@@ -41,6 +41,7 @@ export default class Server {
   #template;
   #name;
   #logo;
+  #version;
 
   constructor({
     prefix,
@@ -51,6 +52,7 @@ export default class Server {
     isServer = true,
     name,
     logo,
+    version,
   } = {}) {
     this.#componentPattern = componentPattern
     this.#isServer = isServer
@@ -60,6 +62,7 @@ export default class Server {
     this.#template = template
     this.#name = name
     this.#logo = logo
+    this.#version = version
 
     this.#basePaths = basePaths.map(path => {
       path = this.parseBasePath(path)
@@ -153,7 +156,8 @@ export default class Server {
           isServer:
           this.#isServer,
           name: this.#name,
-          logo: this.#logo
+          logo: this.#logo,
+          version: this.#version,
         }),
         methods: {
           markdown: str => str ? marked.parse(str) : '',
