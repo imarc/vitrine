@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/tokyo-night-dark.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg width='256' height='256' viewBox='0 0 256 256' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='256' height='256' rx='20.48' fill='%23850080'/><rect x='80.0509' y='46' width='19.2941' height='164' fill='%23ffffff'/><path d='M99.345 140.222V46H139.19C154.347 46 165.91 50.1408 173.879 58.4223C181.848 66.7038 185.832 78.2667 185.832 93.1109C185.832 107.955 181.848 119.518 173.879 127.8C165.91 136.081 154.347 140.222 139.19 140.222H99.345ZM99.345 123.112H138.721C147.003 123.112 153.409 121.081 157.941 117.018C162.628 112.799 164.972 106.861 164.972 99.2049V87.017C164.972 79.3605 162.628 73.5009 157.941 69.4383C153.409 65.2194 147.003 63.1099 138.721 63.1099H99.345V123.112Z' fill='url(%23paint0_linear_5502_40)'/><defs><linearGradient id='paint0_linear_5502_40' x1='108.389' y1='71.3235' x2='81.2567' y2='140.059' gradientUnits='userSpaceOnUse'><stop stop-color='%23ffffff'/><stop offset='1' stop-color='%23ffffff' stop-opacity='0'/></linearGradient></defs></svg>">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
     <style>
@@ -363,8 +365,10 @@
       })
 
       const hideCodeEl = document.querySelector('.hide-code input')
-      hideCodeEl.checked = sessionStorage.getItem('hideCode') === 'true'
-      hideCodeEl.addEventListener('change', evt => sessionStorage.setItem('hideCode', evt.target.checked))
+      if (hideCodeEl) {
+        hideCodeEl.checked = sessionStorage.getItem('hideCode') === 'true'
+        hideCodeEl.addEventListener('change', evt => sessionStorage.setItem('hideCode', evt.target.checked))
+      }
     </script>
   </body>
 </html>
