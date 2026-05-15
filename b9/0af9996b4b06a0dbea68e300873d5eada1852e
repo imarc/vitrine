@@ -1,0 +1,24 @@
+src/templates/default.html
+  s_9956962d343b63::t_6473491bd5b48e 405-409
+  s_9956962d343b63::t_1e6f301cca8621 131-164
+  s_9956962d343b63::t_5fb21ef7f44486 332-335
+  s_9956962d343b63::t_5345faa940ba57 415-417,419,421,423-425,427-436,455
+  s_9956962d343b63::t_2f35a3fee28e09 418,420,422,426,437-438
+  s_9956962d343b63::t_3255c34c67ec29 439-454
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "b90af9996b4b06a0dbea68e300873d5eada1852e",
+  "prompts": {},
+  "sessions": {
+    "s_9956962d343b63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c534816a-3a3a-49bc-8acf-77c447173a7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Kevin Hamer <kevin@imarc.com>"
+    }
+  }
+}
