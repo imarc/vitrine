@@ -128,6 +128,40 @@
         opacity: .5;
         padding: 1em;
       }
+
+      .filter {
+        padding: 10px 16px 10px 10px;
+        background: #2c2c2c;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .filter__clear {
+        position: absolute;
+        background: #0000;
+        translate: -100%;
+        border: 0;
+        color: #fff;
+        height: 22px;
+        cursor: pointer;
+      }
+
+      input[type="search"] {
+        background: #fff1;
+        border: none;
+        border-radius: 5px;
+        color: #fff;
+        outline: none;
+        padding: .25em 1em .25em .5em;
+        width: 100%;
+
+        &::-webkit-search-cancel-button {
+          -webkit-appearance: none;
+        }
+
+        &::placeholder { color: #fff6; }
+      }
     }
     .documentation {
       background: #fff;
@@ -295,6 +329,10 @@
     <div id="root">
       <aside>
         <h1><a :href="server.prefix" v-html="logo || name"></a></h1>
+        <form class="filter">
+          <input type="search" placeholder="Filter…" aria-label="Filter components">
+          <button class="filter__clear" type="reset">×</button>
+        </form>
         <RecursiveList :data="components.toArray()" />
         <div class="version">{{ version }}</div>
       </aside>
@@ -364,10 +402,56 @@
         e.addEventListener('toggle', toggle)
       })
 
+      const aside = document.querySelector('aside')
+      aside.scrollTop = sessionStorage.getItem('asideScroll') | 0
+      aside.addEventListener('scroll', () =>
+        sessionStorage.setItem('asideScroll', aside.scrollTop))
+
       const hideCodeEl = document.querySelector('.hide-code input')
       if (hideCodeEl) {
         hideCodeEl.checked = sessionStorage.getItem('hideCode') === 'true'
         hideCodeEl.addEventListener('change', evt => sessionStorage.setItem('hideCode', evt.target.checked))
+      }
+
+      const searchEl = document.querySelector('aside input[type="search"]')
+      if (searchEl) {
+        const allLis = () => [...document.querySelectorAll('aside li')]
+
+        const filterComponents = q => {
+          if (!q) {
+            allLis().forEach(li => li.hidden = false)
+            details.forEach((e, i) => e.open = !!detailsState?.[i])
+            return
+          }
+          allLis().forEach(li => li.hidden = true)
+          document.querySelectorAll('aside li a').forEach(a => {
+            if (a.textContent.toLowerCase().includes(q)) {
+              let el = a.closest('li')
+              while (el) {
+                el.hidden = false
+                el = el.parentElement?.closest('li')
+              }
+            }
+          })
+          details.forEach(d => d.open = true)
+        }
+
+        const savedFilter = sessionStorage.getItem('filter') || ''
+        if (savedFilter) {
+          searchEl.value = savedFilter
+          filterComponents(savedFilter)
+        }
+
+        searchEl.addEventListener('input', () => {
+          const q = searchEl.value.toLowerCase().trim()
+          sessionStorage.setItem('filter', q)
+          filterComponents(q)
+        })
+
+        searchEl.closest('form')?.addEventListener('reset', () => {
+          sessionStorage.removeItem('filter')
+          filterComponents('')
+        })
       }
     </script>
   </body>
