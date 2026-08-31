@@ -40,6 +40,7 @@ Options
 * **includes** - As an advanced configuration option, if you specify an include that begins with any HTML tag, it will include that string as is.
 * **outDir** - Where to put the built pattern library. Default: `dist`
 * **manifestDir** – path to Vite's manifest. Set to `false` to disable using the manifest at all. Default: `${outDir}/.vite`
+* **assetBase** - Public URL prefix for assets resolved from Vite's manifest. Default: `/`.
 * **prefix** - The prefix to use for the path to the pattern library. Default: `/components`
 * **stylesheetPattern** - A RegExp that should differentiate when to link to them a `<link>` or `<script>` tag. Default: `/\.(css|less|sass|scss|styl)$/i`
 * **template** - You can override the default template Vitrine includes as iframes. By default, Vitrine will look for a file named `_preview.html` and use that, but if it doesn't exist, it will fallback to its own builtin template. Default: `_preview.html`

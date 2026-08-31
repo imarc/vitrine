@@ -30,6 +30,7 @@ const defaultTemplate = `
 
 
 export default class Server {
+  #assetBase;
   #basePaths;
   #componentPattern;
   #includes = [];
@@ -47,6 +48,7 @@ export default class Server {
     prefix,
     basePaths,
     componentPattern,
+    assetBase = '/',
     stylesheetPattern,
     template,
     isServer = true,
@@ -54,6 +56,7 @@ export default class Server {
     logo,
     version,
   } = {}) {
+    this.#assetBase = assetBase.endsWith('/') ? assetBase : `${assetBase}/`
     this.#componentPattern = componentPattern
     this.#isServer = isServer
     this.#prefix = prefix
@@ -124,7 +127,7 @@ export default class Server {
     if (this.#manifest) {
       includes = includes.map(i => i.replace(/^\//, '')).map(include => {
         if (include in this.#manifest) {
-          return '/' + this.#manifest[include].file
+          return this.#assetBase + this.#manifest[include].file.replace(/^\/+/, '')
         }
         return include
       })
@@ -424,4 +427,3 @@ export default class Server {
     }
   }
 }
-

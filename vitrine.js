@@ -14,13 +14,14 @@ export default function vitrinePlugin({
   stylesheetPattern = /\.(css|less|sass|scss|styl)$/i,
   outDir = 'dist',
   manifestDir = undefined,
+  assetBase = '/',
   buildLibrary = true,
   name = 'Vitrine',
   logo = undefined,
   version = undefined,
 } = {}) {
 
-  const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern, name, logo, version })
+  const server = new Server({ prefix, basePaths, componentPattern, template, stylesheetPattern, assetBase, name, logo, version })
 
   if (includeVite) {
     server.include('/@vite/client')
