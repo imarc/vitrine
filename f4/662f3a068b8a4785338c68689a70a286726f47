@@ -1,0 +1,19 @@
+src/templates/default.html
+  s_561982bd21f230::t_e1c0e4f9cf0722 363-364,373,375
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f4662f3a068b8a4785338c68689a70a286726f47",
+  "prompts": {},
+  "sessions": {
+    "s_561982bd21f230": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fa7693823ffe2Cf0lkKJR0EzVK",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Kevin Hamer <kevin@imarc.com>"
+    }
+  }
+}
