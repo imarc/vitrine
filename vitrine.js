@@ -68,12 +68,15 @@ export default function vitrinePlugin({
         return
       }
 
-      // Get the manifest of built assets
+      // Get the manifest of built assets. When manifestDir isn't specified, try
+      // both the location Vite uses and the one laravel-vite-plugin uses.
       if (manifestDir === undefined) {
-        manifestDir = join(outDir, '.vite')
-      }
-      if (manifestDir) {
-        server.useManifest(join(manifestDir, 'manifest.json'))
+        await server.useManifest(
+          join(outDir, '.vite', 'manifest.json'),
+          join(outDir, 'manifest.json'),
+        )
+      } else if (manifestDir) {
+        await server.useManifest(join(manifestDir, 'manifest.json'))
       }
       server.setIsServer(false)
 
@@ -110,7 +113,6 @@ export default function vitrinePlugin({
     },
 
     handleHotUpdate({ file, modules, server }) {
-      console.log('handleHotUpdate', file, modules)
       if (componentPattern.test(file)) {
         server.ws.send({ type: 'full-reload' })
         return []

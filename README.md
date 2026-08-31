@@ -39,7 +39,7 @@ Options
 * **includeVite** - Whether to include Vite. Default: `true`. You would want to turn this off if Vite is being included through another method. For example, if you're using Nuxt, you likely want to set this to `false`.
 * **includes** - As an advanced configuration option, if you specify an include that begins with any HTML tag, it will include that string as is.
 * **outDir** - Where to put the built pattern library. Default: `dist`
-* **manifestDir** – path to Vite's manifest. Set to `false` to disable using the manifest at all. Default: `${outDir}/.vite`
+* **manifestDir** – path to the directory holding Vite's manifest. Set to `false` to disable using the manifest at all. When unset, Vitrine looks for `${outDir}/.vite/manifest.json` and then `${outDir}/manifest.json`, so both Vite's own layout and laravel-vite-plugin's work without configuration. Default: unset
 * **assetBase** - Public URL prefix for assets resolved from Vite's manifest. Default: `/`.
 * **prefix** - The prefix to use for the path to the pattern library. Default: `/components`
 * **stylesheetPattern** - A RegExp that should differentiate when to link to them a `<link>` or `<script>` tag. Default: `/\.(css|less|sass|scss|styl)$/i`

@@ -84,14 +84,28 @@ export default class Server {
     return `${this.#sortOrder.length} ${filename}`
   }
   
-  async useManifest(manifest) {
-    this.#manifest = await
-      readFile(manifest, 'utf-8')
+  /**
+   * Load Vite's build manifest. Accepts one path or several candidate paths and
+   * uses the first one that can be read - build tools disagree on where the
+   * manifest lands (Vite writes ${outDir}/.vite/manifest.json, while
+   * laravel-vite-plugin writes ${outDir}/manifest.json).
+   */
+  async useManifest(...manifests) {
+    const candidates = manifests.flat().filter(Boolean)
+
+    for (const candidate of candidates) {
+      const manifest = await readFile(candidate, 'utf-8')
         .then(file => JSON.parse(file))
-        .catch(() => {
-          console.error('Unable to read the manifest.json, it might not exist yet.')
-          return null
-        })
+        .catch(() => null)
+
+      if (manifest) {
+        this.#manifest = manifest
+        return
+      }
+    }
+
+    this.#manifest = null
+    console.error(`Unable to read a manifest.json, it might not exist yet. Tried: ${candidates.join(', ')}`)
   }
   
   setIsServer(isServer) {
