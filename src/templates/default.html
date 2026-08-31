@@ -360,8 +360,8 @@
         v-if="component?.type === 'directory'"
         class="showcase"
       >
-        <a class="fullscreen" target="_parent" :href="component.url + '/@html'" title="Open example fullscreen">⛶</a>
-        <iframe :src="component.url + '/@html'"></iframe>
+        <a class="fullscreen" target="_parent" :href="component.url + '/@html/'" title="Open example fullscreen">⛶</a>
+        <iframe :src="component.url + '/@html/'"></iframe>
       </main>
       <main
         v-else-if="component?.filetype === 'md'"
@@ -370,9 +370,9 @@
       </main>
       <template v-else-if="component">
         <main class="preview" id="app">
-          <a class="fullscreen" :href="component.url + '/@html'" title="Open example fullscreen">⛶</a>
+          <a class="fullscreen" :href="component.url + '/@html/'" title="Open example fullscreen">⛶</a>
           <label class="hide-code" title="Toggle bottom code panel"><input type="checkbox">⬒</label>
-          <iframe :src="component.url + '/@html'"></iframe>
+          <iframe :src="component.url + '/@html/'"></iframe>
         </main>
         <div class="files">
           <div v-for="(file, i) in related">
